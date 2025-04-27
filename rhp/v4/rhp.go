@@ -318,13 +318,13 @@ type (
 		Contract      RPCFormContractParams  `json:"contract"`
 		MinerFee      types.Currency         `json:"minerFee"`
 		Basis         types.ChainIndex       `json:"basis"`
-		RenterInputs  []types.SiacoinElement `json:"renterInputs"`
+		RenterInputs  []types.BigFileElement `json:"renterInputs"`
 		RenterParents []types.V2Transaction  `json:"renterParents"`
 	}
 
 	// RPCFormContractResponse implements Object.
 	RPCFormContractResponse struct {
-		HostInputs []types.V2SiacoinInput `json:"hostInputs"`
+		HostInputs []types.V2BigFileInput `json:"hostInputs"`
 	}
 
 	// RPCFormContractSecondResponse implements Object.
@@ -353,13 +353,13 @@ type (
 		Refresh            RPCRefreshContractParams `json:"refresh"`
 		MinerFee           types.Currency           `json:"minerFee"`
 		Basis              types.ChainIndex         `json:"basis"`
-		RenterInputs       []types.SiacoinElement   `json:"renterInputs"`
+		RenterInputs       []types.BigFileElement   `json:"renterInputs"`
 		RenterParents      []types.V2Transaction    `json:"renterParents"`
 		ChallengeSignature types.Signature          `json:"challengeSignature"`
 	}
 	// RPCRefreshContractResponse implements Object.
 	RPCRefreshContractResponse struct {
-		HostInputs []types.V2SiacoinInput `json:"hostInputs"`
+		HostInputs []types.V2BigFileInput `json:"hostInputs"`
 	}
 	// RPCRefreshContractSecondResponse implements Object.
 	RPCRefreshContractSecondResponse struct {
@@ -388,13 +388,13 @@ type (
 		Renewal            RPCRenewContractParams `json:"renewal"`
 		MinerFee           types.Currency         `json:"minerFee"`
 		Basis              types.ChainIndex       `json:"basis"`
-		RenterInputs       []types.SiacoinElement `json:"renterInputs"`
+		RenterInputs       []types.BigFileElement `json:"renterInputs"`
 		RenterParents      []types.V2Transaction  `json:"renterParents"`
 		ChallengeSignature types.Signature        `json:"challengeSignature"`
 	}
 	// RPCRenewContractResponse implements Object.
 	RPCRenewContractResponse struct {
-		HostInputs []types.V2SiacoinInput `json:"hostInputs"`
+		HostInputs []types.V2BigFileInput `json:"hostInputs"`
 	}
 	// RPCRenewContractSecondResponse implements Object.
 	RPCRenewContractSecondResponse struct {
@@ -661,11 +661,11 @@ func NewContract(p HostPrices, cp RPCFormContractParams, hostKey types.PublicKey
 			FileMerkleRoot:   types.Hash256{},
 			ProofHeight:      cp.ProofHeight,
 			ExpirationHeight: cp.ProofHeight + ProofWindow,
-			RenterOutput: types.SiacoinOutput{
+			RenterOutput: types.BigFileOutput{
 				Value:   cp.Allowance,
 				Address: cp.RenterAddress,
 			},
-			HostOutput: types.SiacoinOutput{
+			HostOutput: types.BigFileOutput{
 				Value:   cp.Collateral.Add(p.ContractPrice),
 				Address: hostAddress,
 			},

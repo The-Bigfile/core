@@ -30,11 +30,11 @@ func PrepareContractRenewal(currentRevision types.FileContractRevision, hostAddr
 		Payout:         taxAdjustedPayout(renterPayout.Add(hostValidPayout)),
 		UnlockHash:     currentRevision.UnlockHash,
 		RevisionNumber: 0,
-		ValidProofOutputs: []types.SiacoinOutput{
+		ValidProofOutputs: []types.BigFileOutput{
 			{Value: renterPayout, Address: renterAddress},
 			{Value: hostValidPayout, Address: hostAddress},
 		},
-		MissedProofOutputs: []types.SiacoinOutput{
+		MissedProofOutputs: []types.BigFileOutput{
 			{Value: renterPayout, Address: renterAddress},
 			{Value: hostMissedPayout, Address: hostAddress},
 			{Value: voidMissedPayout, Address: types.Address{}},

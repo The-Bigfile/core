@@ -48,13 +48,13 @@ func PrepareContractFormation(renterPubKey types.PublicKey, hostKey types.Public
 		Payout:         payout,
 		UnlockHash:     uc.UnlockHash(),
 		RevisionNumber: 0,
-		ValidProofOutputs: []types.SiacoinOutput{
+		ValidProofOutputs: []types.BigFileOutput{
 			// outputs need to account for tax
 			{Value: renterPayout, Address: refundAddr},
 			// collateral is returned to host
 			{Value: hostPayout, Address: host.Address},
 		},
-		MissedProofOutputs: []types.SiacoinOutput{
+		MissedProofOutputs: []types.BigFileOutput{
 			// same as above
 			{Value: renterPayout, Address: refundAddr},
 			// same as above
@@ -122,11 +122,11 @@ func PrepareContractRenewal(currentRevision types.FileContractRevision, renterAd
 		Payout:         taxAdjustedPayout(renterPayout.Add(hostValidPayout)),
 		UnlockHash:     currentRevision.UnlockHash,
 		RevisionNumber: 0,
-		ValidProofOutputs: []types.SiacoinOutput{
+		ValidProofOutputs: []types.BigFileOutput{
 			{Value: renterPayout, Address: renterAddress},
 			{Value: hostValidPayout, Address: host.Address},
 		},
-		MissedProofOutputs: []types.SiacoinOutput{
+		MissedProofOutputs: []types.BigFileOutput{
 			{Value: renterPayout, Address: renterAddress},
 			{Value: hostMissedPayout, Address: host.Address},
 			{Value: voidMissedPayout, Address: types.Address{}},

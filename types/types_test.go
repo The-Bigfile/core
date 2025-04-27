@@ -290,9 +290,9 @@ func TestCurrencyMul(t *testing.T) {
 			NewCurrency(0, math.MaxUint64),
 		},
 		{
-			Siacoins(30),
+			BigFiles(30),
 			NewCurrency(50, 0),
-			Siacoins(1500),
+			BigFiles(1500),
 		},
 		{
 			NewCurrency(math.MaxUint64, 0),
@@ -428,9 +428,9 @@ func TestCurrencyMul64(t *testing.T) {
 			NewCurrency(0, math.MaxUint64),
 		},
 		{
-			Siacoins(30),
+			BigFiles(30),
 			50,
-			Siacoins(1500),
+			BigFiles(1500),
 		},
 		{
 			NewCurrency(math.MaxUint64, 0),
@@ -460,13 +460,13 @@ func TestCurrencyDiv(t *testing.T) {
 			NewCurrency(1, 0),
 		},
 		{
-			Siacoins(156),
+			BigFiles(156),
 			NewCurrency(2, 0),
-			Siacoins(78),
+			BigFiles(78),
 		},
 		{
-			Siacoins(300),
-			Siacoins(2),
+			BigFiles(300),
+			BigFiles(2),
 			NewCurrency(150, 0),
 		},
 		{
@@ -519,9 +519,9 @@ func TestCurrencyDiv64(t *testing.T) {
 			NewCurrency64(1),
 		},
 		{
-			Siacoins(156),
+			BigFiles(156),
 			2,
-			Siacoins(78),
+			BigFiles(78),
 		},
 		{
 			MaxCurrency,
@@ -543,63 +543,63 @@ func TestCurrencyString(t *testing.T) {
 	}{
 		{
 			ZeroCurrency,
-			"0 SC",
+			"0 BIG",
 		},
 		{
 			NewCurrency64(10000),
 			"10000 H",
 		},
 		{
-			Siacoins(1).Div64(1e12),
+			BigFiles(1).Div64(1e12),
 			"1 pS",
 		},
 		{
-			Siacoins(1),
-			"1 SC",
+			BigFiles(1),
+			"1 BIG",
 		},
 		{
-			Siacoins(10),
-			"10 SC",
+			BigFiles(10),
+			"10 BIG",
 		},
 		{
-			Siacoins(100),
-			"100 SC",
+			BigFiles(100),
+			"100 BIG",
 		},
 		{
-			Siacoins(1000),
+			BigFiles(1000),
 			"1 KS",
 		},
 		{
-			Siacoins(1).Mul64(1e12),
+			BigFiles(1).Mul64(1e12),
 			"1 TS",
 		},
 		{
-			Siacoins(10).Sub(Siacoins(1)),
-			"9 SC",
+			BigFiles(10).Sub(BigFiles(1)),
+			"9 BIG",
 		},
 		{
-			Siacoins(10).Sub(Siacoins(1).Div64(10)),
-			"9.9 SC",
+			BigFiles(10).Sub(BigFiles(1).Div64(10)),
+			"9.9 BIG",
 		},
 		{
-			Siacoins(10).Sub(Siacoins(1).Div64(100)),
-			"9.99 SC",
+			BigFiles(10).Sub(BigFiles(1).Div64(100)),
+			"9.99 BIG",
 		},
 		{
-			Siacoins(10).Sub(Siacoins(1).Div64(1000)),
-			"9.999 SC",
+			BigFiles(10).Sub(BigFiles(1).Div64(1000)),
+			"9.999 BIG",
 		},
 		{
-			Siacoins(10).Sub(Siacoins(1).Div64(10000)),
-			"9.9999 SC",
+			BigFiles(10).Sub(BigFiles(1).Div64(10000)),
+			"9.9999 BIG",
 		},
 		{
-			Siacoins(10).Sub(NewCurrency64(1)),
-			"9.999999999999999999999999 SC",
+			BigFiles(10).Sub(NewCurrency64(1)),
+			"9.999999999999999999999999 BIG",
 		},
 		{
 			NewCurrency(8262254095159001088, 2742357),
-			"50.587566 SC",
+			"50.587566 BIG",
 		},
 		{
 			NewCurrency(2174395257947586975, 137),
@@ -699,28 +699,28 @@ func TestParseCurrency(t *testing.T) {
 			false,
 		},
 		{
-			"1 SC",
-			Siacoins(1),
+			"1 BIG",
+			BigFiles(1),
 			false,
 		},
 		{
 			"1000 mS",
-			Siacoins(1),
+			BigFiles(1),
 			false,
 		},
 		{
 			"123 mS",
-			Siacoins(123).Div64(1000),
+			BigFiles(123).Div64(1000),
 			false,
 		},
 		{
-			"2.000000000000000000000001 SC",
-			Siacoins(2).Add(NewCurrency64(1)),
+			"2.000000000000000000000001 BIG",
+			BigFiles(2).Add(NewCurrency64(1)),
 			false,
 		},
 		{
 			"12.345 GS",
-			Siacoins(12345).Mul64(1e6),
+			BigFiles(12345).Mul64(1e6),
 			false,
 		},
 		{
@@ -734,12 +734,12 @@ func TestParseCurrency(t *testing.T) {
 			true,
 		},
 		{
-			".... SC",
+			".... BIG",
 			ZeroCurrency,
 			true,
 		},
 		{
-			"0.0000000000000000000000001 SC",
+			"0.0000000000000000000000001 BIG",
 			ZeroCurrency,
 			true,
 		},
@@ -761,10 +761,10 @@ func TestParseCurrency(t *testing.T) {
 
 func TestTransactionJSONMarshalling(t *testing.T) {
 	txn := Transaction{
-		SiacoinOutputs: []SiacoinOutput{
-			{Address: frand.Entropy256(), Value: Siacoins(uint32(frand.Uint64n(math.MaxUint32)))},
+		BigFileOutputs: []BigFileOutput{
+			{Address: frand.Entropy256(), Value: BigFiles(uint32(frand.Uint64n(math.MaxUint32)))},
 		},
-		SiacoinInputs: []SiacoinInput{
+		BigFileInputs: []BigFileInput{
 			{
 				ParentID: frand.Entropy256(),
 				UnlockConditions: UnlockConditions{
@@ -800,9 +800,9 @@ func TestTransactionJSONMarshalling(t *testing.T) {
 
 func TestV2TransactionJSONMarshalling(t *testing.T) {
 	txn := V2Transaction{
-		SiacoinInputs: []V2SiacoinInput{
+		BigFileInputs: []V2BigFileInput{
 			{
-				Parent: SiacoinElement{
+				Parent: BigFileElement{
 					ID: frand.Entropy256(),
 					StateElement: StateElement{
 						LeafIndex: frand.Uint64n(math.MaxUint64),

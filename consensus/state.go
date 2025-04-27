@@ -232,7 +232,7 @@ func (s State) BlockInterval() time.Duration {
 
 // BlockReward returns the reward for mining a child block.
 func (s State) BlockReward() types.Currency {
-	r, underflow := s.Network.InitialCoinbase.SubWithUnderflow(types.Siacoins(uint32(s.childHeight())))
+	r, underflow := s.Network.InitialCoinbase.SubWithUnderflow(types.BigFiles(uint32(s.childHeight())))
 	if underflow || r.Cmp(s.Network.MinimumCoinbase) < 0 {
 		return s.Network.MinimumCoinbase
 	}
@@ -257,17 +257,17 @@ func (s State) AncestorDepth() uint64 {
 }
 
 // FoundationSubsidy returns the Foundation subsidy output for the child block.
-func (s State) FoundationSubsidy() (sco types.SiacoinOutput, exists bool) {
+func (s State) FoundationSubsidy() (sco types.BigFileOutput, exists bool) {
 	if s.FoundationSubsidyAddress == types.VoidAddress {
-		return types.SiacoinOutput{}, false
+		return types.BigFileOutput{}, false
 	}
 	sco.Address = s.FoundationSubsidyAddress
-	subsidyPerBlock := types.Siacoins(30000)
+	subsidyPerBlock := types.BigFiles(30000)
 	blocksPerYear := uint64(365 * 24 * time.Hour / s.BlockInterval())
 	blocksPerMonth := blocksPerYear / 12
 	hardforkHeight := s.Network.HardforkFoundation.Height
 	if s.childHeight() < hardforkHeight || (s.childHeight()-hardforkHeight)%blocksPerMonth != 0 {
-		return types.SiacoinOutput{}, false
+		return types.BigFileOutput{}, false
 	} else if s.childHeight() == hardforkHeight {
 		sco.Value = subsidyPerBlock.Mul64(blocksPerYear)
 	} else {
@@ -309,12 +309,12 @@ func (s State) TransactionWeight(txn types.Transaction) uint64 {
 func (s State) V2TransactionWeight(txn types.V2Transaction) uint64 {
 	var wc writeCounter
 	e := types.NewEncoder(&wc)
-	for _, sci := range txn.SiacoinInputs {
+	for _, sci := range txn.BigFileInputs {
 		sci.Parent.StateElement.MerkleProof = nil
 		sci.EncodeTo(e)
 	}
-	for _, sco := range txn.SiacoinOutputs {
-		types.V2SiacoinOutput(sco).EncodeTo(e)
+	for _, sco := range txn.BigFileOutputs {
+		types.V2BigFileOutput(sco).EncodeTo(e)
 	}
 	for _, sfi := range txn.SiafundInputs {
 		sfi.Parent.StateElement.MerkleProof = nil
@@ -437,14 +437,14 @@ func (s State) WholeSigHash(txn types.Transaction, parentID types.Hash256, pubke
 	defer hasherPool.Put(h)
 	h.Reset()
 
-	h.E.WriteUint64(uint64(len((txn.SiacoinInputs))))
-	for i := range txn.SiacoinInputs {
+	h.E.WriteUint64(uint64(len((txn.BigFileInputs))))
+	for i := range txn.BigFileInputs {
 		h.E.Write(s.replayPrefix())
-		txn.SiacoinInputs[i].EncodeTo(h.E)
+		txn.BigFileInputs[i].EncodeTo(h.E)
 	}
-	h.E.WriteUint64(uint64(len((txn.SiacoinOutputs))))
-	for i := range txn.SiacoinOutputs {
-		types.V1SiacoinOutput(txn.SiacoinOutputs[i]).EncodeTo(h.E)
+	h.E.WriteUint64(uint64(len((txn.BigFileOutputs))))
+	for i := range txn.BigFileOutputs {
+		types.V1BigFileOutput(txn.BigFileOutputs[i]).EncodeTo(h.E)
 	}
 	h.E.WriteUint64(uint64(len((txn.FileContracts))))
 	for i := range txn.FileContracts {
@@ -494,12 +494,12 @@ func (s State) PartialSigHash(txn types.Transaction, cf types.CoveredFields) typ
 	defer hasherPool.Put(h)
 	h.Reset()
 
-	for _, i := range cf.SiacoinInputs {
+	for _, i := range cf.BigFileInputs {
 		h.E.Write(s.replayPrefix())
-		txn.SiacoinInputs[i].EncodeTo(h.E)
+		txn.BigFileInputs[i].EncodeTo(h.E)
 	}
-	for _, i := range cf.SiacoinOutputs {
-		types.V1SiacoinOutput(txn.SiacoinOutputs[i]).EncodeTo(h.E)
+	for _, i := range cf.BigFileOutputs {
+		types.V1BigFileOutput(txn.BigFileOutputs[i]).EncodeTo(h.E)
 	}
 	for _, i := range cf.FileContracts {
 		txn.FileContracts[i].EncodeTo(h.E)
@@ -584,11 +584,11 @@ func (s State) AttestationSigHash(a types.Attestation) types.Hash256 {
 	return hashAll("sig/attestation", s.v2ReplayPrefix(), a)
 }
 
-// A SiacoinElementDiff is a SiacoinElement that was created and/or spent within
+// A BigFileElementDiff is a BigFileElement that was created and/or spent within
 // a block. Note that an element may be both created and spent in the the same
 // block.
-type SiacoinElementDiff struct {
-	SiacoinElement types.SiacoinElement `json:"siacoinElement"`
+type BigFileElementDiff struct {
+	BigFileElement types.BigFileElement `json:"siacoinElement"`
 	Created        bool                 `json:"created"`
 	Spent          bool                 `json:"spent"`
 }
@@ -667,7 +667,7 @@ type MidState struct {
 	foundationManagement types.Address
 
 	// elements created/updated by block
-	sces   []SiacoinElementDiff
+	sces   []BigFileElementDiff
 	sfes   []SiafundElementDiff
 	fces   []FileContractElementDiff
 	v2fces []V2FileContractElementDiff
@@ -675,16 +675,16 @@ type MidState struct {
 	cie    types.ChainIndexElement
 }
 
-func (ms *MidState) siacoinElement(ts V1TransactionSupplement, id types.SiacoinOutputID) (types.SiacoinElement, bool) {
+func (ms *MidState) siacoinElement(ts V1TransactionSupplement, id types.BigFileOutputID) (types.BigFileElement, bool) {
 	if i, ok := ms.elements[id]; ok {
-		return ms.sces[i].SiacoinElement, true
+		return ms.sces[i].BigFileElement, true
 	}
-	for _, sce := range ts.SiacoinInputs {
+	for _, sce := range ts.BigFileInputs {
 		if sce.ID == id {
 			return sce, true
 		}
 	}
-	return types.SiacoinElement{}, false
+	return types.BigFileElement{}, false
 }
 
 func (ms *MidState) siafundElement(ts V1TransactionSupplement, id types.SiafundOutputID) (types.SiafundElement, bool) {
@@ -775,13 +775,13 @@ func (sps *V1StorageProofSupplement) DecodeFrom(d *types.Decoder) {
 
 // A V1TransactionSupplement contains elements that are associated with a v1
 // transaction, but not included in the transaction. For example, v1
-// transactions reference the ID of each SiacoinOutput they spend, but do not
+// transactions reference the ID of each BigFileOutput they spend, but do not
 // contain the output itself. Consequently, in order to validate the
 // transaction, those outputs must be loaded from a Store. Collecting these
 // elements into an explicit struct allows us to preserve them even after the
 // Store has been mutated.
 type V1TransactionSupplement struct {
-	SiacoinInputs        []types.SiacoinElement
+	BigFileInputs        []types.BigFileElement
 	SiafundInputs        []types.SiafundElement
 	RevisedFileContracts []types.FileContractElement
 	StorageProofs        []V1StorageProofSupplement
@@ -789,7 +789,7 @@ type V1TransactionSupplement struct {
 
 // EncodeTo implements types.EncoderTo.
 func (ts V1TransactionSupplement) EncodeTo(e *types.Encoder) {
-	types.EncodeSlice(e, ts.SiacoinInputs)
+	types.EncodeSlice(e, ts.BigFileInputs)
 	types.EncodeSlice(e, ts.SiafundInputs)
 	types.EncodeSlice(e, ts.RevisedFileContracts)
 	types.EncodeSlice(e, ts.StorageProofs)
@@ -797,7 +797,7 @@ func (ts V1TransactionSupplement) EncodeTo(e *types.Encoder) {
 
 // DecodeFrom implements types.DecoderFrom.
 func (ts *V1TransactionSupplement) DecodeFrom(d *types.Decoder) {
-	types.DecodeSlice(d, &ts.SiacoinInputs)
+	types.DecodeSlice(d, &ts.BigFileInputs)
 	types.DecodeSlice(d, &ts.SiafundInputs)
 	types.DecodeSlice(d, &ts.RevisedFileContracts)
 	types.DecodeSlice(d, &ts.StorageProofs)
