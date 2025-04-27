@@ -16,7 +16,7 @@ func checkApplyUpdate(t *testing.T, cs State, au ApplyUpdate) {
 	t.Helper()
 
 	for _, sce := range au.sces {
-		if !cs.Elements.containsLeaf(siacoinLeaf(&sce.BigFileElement, sce.Spent)) {
+		if !cs.Elements.containsLeaf(bigfileLeaf(&sce.BigFileElement, sce.Spent)) {
 			t.Fatalf("consensus: bigfile element %v %v not found in accumulator after apply", sce.Spent, sce.BigFileElement.ID)
 		}
 	}
@@ -46,7 +46,7 @@ func checkRevertUpdate(t *testing.T, cs State, ru RevertUpdate) {
 	t.Helper()
 
 	for _, sce := range ru.sces {
-		if cs.Elements.containsLeaf(siacoinLeaf(&sce.BigFileElement, sce.Spent)) {
+		if cs.Elements.containsLeaf(bigfileLeaf(&sce.BigFileElement, sce.Spent)) {
 			t.Fatal("consensus: bigfile element found in accumulator after revert")
 		}
 	}

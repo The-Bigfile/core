@@ -494,7 +494,7 @@ func (ms *MidState) createAttestationElement(id types.AttestationID, a types.Att
 func (ms *MidState) ApplyTransaction(txn types.Transaction, ts V1TransactionSupplement) {
 	txid := txn.ID()
 	for _, sci := range txn.BigFileInputs {
-		sce, ok := ms.siacoinElement(ts, sci.ParentID)
+		sce, ok := ms.bigfileElement(ts, sci.ParentID)
 		if !ok {
 			panic("missing BigFileElement")
 		}
@@ -639,7 +639,7 @@ func (ms *MidState) ApplyBlock(b types.Block, bs V1BlockSupplement) {
 func forEachAppliedElement(sces []BigFileElementDiff, sfes []SiafundElementDiff, fces []FileContractElementDiff, v2fces []V2FileContractElementDiff, aes []types.AttestationElement, cie *types.ChainIndexElement, fn func(elementLeaf)) {
 	for i := range sces {
 		sce := &sces[i]
-		fn(siacoinLeaf(&sce.BigFileElement, sce.Spent))
+		fn(bigfileLeaf(&sce.BigFileElement, sce.Spent))
 	}
 	for i := range sfes {
 		sfe := &sfes[i]
@@ -666,7 +666,7 @@ func forEachAppliedElement(sces []BigFileElementDiff, sfes []SiafundElementDiff,
 
 func forEachRevertedElement(sces []BigFileElementDiff, sfes []SiafundElementDiff, fces []FileContractElementDiff, v2fces []V2FileContractElementDiff, fn func(elementLeaf)) {
 	for i := range sces {
-		fn(siacoinLeaf(&sces[i].BigFileElement, false))
+		fn(bigfileLeaf(&sces[i].BigFileElement, false))
 	}
 	for i := range sfes {
 		fn(siafundLeaf(&sfes[i].SiafundElement, false))

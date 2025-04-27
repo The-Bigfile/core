@@ -181,7 +181,7 @@ func validateBigFiles(ms *MidState, txn types.Transaction, ts V1TransactionSuppl
 		} else if txid, ok := ms.spent(types.Hash256(sci.ParentID)); ok {
 			return fmt.Errorf("bigfile input %v double-spends parent output (previously spent in %v)", i, txid)
 		}
-		parent, ok := ms.siacoinElement(ts, sci.ParentID)
+		parent, ok := ms.bigfileElement(ts, sci.ParentID)
 		if !ok {
 			return fmt.Errorf("bigfile input %v spends nonexistent bigfile output %v", i, sci.ParentID)
 		} else if sci.UnlockConditions.UnlockHash() != parent.BigFileOutput.Address {

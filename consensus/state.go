@@ -588,7 +588,7 @@ func (s State) AttestationSigHash(a types.Attestation) types.Hash256 {
 // a block. Note that an element may be both created and spent in the the same
 // block.
 type BigFileElementDiff struct {
-	BigFileElement types.BigFileElement `json:"siacoinElement"`
+	BigFileElement types.BigFileElement `json:"bigfileElement"`
 	Created        bool                 `json:"created"`
 	Spent          bool                 `json:"spent"`
 }
@@ -675,7 +675,7 @@ type MidState struct {
 	cie    types.ChainIndexElement
 }
 
-func (ms *MidState) siacoinElement(ts V1TransactionSupplement, id types.BigFileOutputID) (types.BigFileElement, bool) {
+func (ms *MidState) bigfileElement(ts V1TransactionSupplement, id types.BigFileOutputID) (types.BigFileElement, bool) {
 	if i, ok := ms.elements[id]; ok {
 		return ms.sces[i].BigFileElement, true
 	}
