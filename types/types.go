@@ -196,7 +196,7 @@ type ChainIndex struct {
 	ID     BlockID `json:"id"`
 }
 
-// A BigFileOutput is the recipient of some of the siacoins spent in a
+// A BigFileOutput is the recipient of some of the bigfiles spent in a
 // transaction.
 type BigFileOutput struct {
 	Value   Currency `json:"value"`
@@ -365,8 +365,8 @@ type FoundationAddressUpdate struct {
 // signature.
 type CoveredFields struct {
 	WholeTransaction      bool     `json:"wholeTransaction,omitempty"`
-	BigFileInputs         []uint64 `json:"siacoinInputs,omitempty"`
-	BigFileOutputs        []uint64 `json:"siacoinOutputs,omitempty"`
+	BigFileInputs         []uint64 `json:"bigfileInputs,omitempty"`
+	BigFileOutputs        []uint64 `json:"bigfileOutputs,omitempty"`
 	FileContracts         []uint64 `json:"fileContracts,omitempty"`
 	FileContractRevisions []uint64 `json:"fileContractRevisions,omitempty"`
 	StorageProofs         []uint64 `json:"storageProofs,omitempty"`
@@ -388,8 +388,8 @@ type TransactionSignature struct {
 
 // A Transaction effects a change of blockchain state.
 type Transaction struct {
-	BigFileInputs         []BigFileInput         `json:"siacoinInputs,omitempty"`
-	BigFileOutputs        []BigFileOutput        `json:"siacoinOutputs,omitempty"`
+	BigFileInputs         []BigFileInput         `json:"bigfileInputs,omitempty"`
+	BigFileOutputs        []BigFileOutput        `json:"bigfileOutputs,omitempty"`
 	FileContracts         []FileContract         `json:"fileContracts,omitempty"`
 	FileContractRevisions []FileContractRevision `json:"fileContractRevisions,omitempty"`
 	StorageProofs         []StorageProof         `json:"storageProofs,omitempty"`
@@ -668,8 +668,8 @@ type AttestationElement struct {
 
 // A V2Transaction effects a change of blockchain state.
 type V2Transaction struct {
-	BigFileInputs           []V2BigFileInput           `json:"siacoinInputs,omitempty"`
-	BigFileOutputs          []BigFileOutput            `json:"siacoinOutputs,omitempty"`
+	BigFileInputs           []V2BigFileInput           `json:"bigfileInputs,omitempty"`
+	BigFileOutputs          []BigFileOutput            `json:"bigfileOutputs,omitempty"`
 	SiafundInputs           []V2SiafundInput           `json:"siafundInputs,omitempty"`
 	SiafundOutputs          []SiafundOutput            `json:"siafundOutputs,omitempty"`
 	FileContracts           []V2FileContract           `json:"fileContracts,omitempty"`

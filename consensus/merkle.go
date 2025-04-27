@@ -79,8 +79,8 @@ func chainIndexLeaf(e *types.ChainIndexElement) elementLeaf {
 	return elementLeaf{&e.StateElement, elemHash, false}
 }
 
-// siacoinLeaf returns the elementLeaf for a BigFileElement.
-func siacoinLeaf(e *types.BigFileElement, spent bool) elementLeaf {
+// bigfileLeaf returns the elementLeaf for a BigFileElement.
+func bigfileLeaf(e *types.BigFileElement, spent bool) elementLeaf {
 	elemHash := hashAll("leaf/bigfile", e.ID, types.V2BigFileOutput(e.BigFileOutput), e.MaturityHeight)
 	return elementLeaf{&e.StateElement, elemHash, spent}
 }
@@ -192,11 +192,11 @@ func (acc *ElementAccumulator) containsChainIndex(cie types.ChainIndexElement) b
 }
 
 func (acc *ElementAccumulator) containsUnspentBigFileElement(sce types.BigFileElement) bool {
-	return acc.containsLeaf(siacoinLeaf(&sce, false))
+	return acc.containsLeaf(bigfileLeaf(&sce, false))
 }
 
 func (acc *ElementAccumulator) containsSpentBigFileElement(sce types.BigFileElement) bool {
-	return acc.containsLeaf(siacoinLeaf(&sce, true))
+	return acc.containsLeaf(bigfileLeaf(&sce, true))
 }
 
 func (acc *ElementAccumulator) containsUnspentSiafundElement(sfe types.SiafundElement) bool {
