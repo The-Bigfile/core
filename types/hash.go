@@ -151,14 +151,14 @@ func unlockConditionsRoot(uc UnlockConditions) Address {
 	return acc.Root()
 }
 
-func blockMerkleRoot(minerPayouts []SiacoinOutput, txns []Transaction) Hash256 {
+func blockMerkleRoot(minerPayouts []BigFileOutput, txns []Transaction) Hash256 {
 	h := hasherPool.Get().(*Hasher)
 	defer hasherPool.Put(h)
 	var acc blake2b.Accumulator
 	for _, mp := range minerPayouts {
 		h.Reset()
 		h.E.WriteUint8(leafHashPrefix)
-		V1SiacoinOutput(mp).EncodeTo(h.E)
+		V1BigFileOutput(mp).EncodeTo(h.E)
 		acc.AddLeaf(h.Sum())
 	}
 	for _, txn := range txns {

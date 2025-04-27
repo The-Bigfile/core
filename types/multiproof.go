@@ -29,8 +29,8 @@ func chainIndexLeaf(e *ChainIndexElement) elementLeaf {
 	return elementLeaf{&e.StateElement, hashAll("leaf/chainindex", e.ID, e.ChainIndex)}
 }
 
-func siacoinLeaf(e *SiacoinElement) elementLeaf {
-	return elementLeaf{&e.StateElement, hashAll("leaf/siacoin", e.ID, V2SiacoinOutput(e.SiacoinOutput), e.MaturityHeight)}
+func siacoinLeaf(e *BigFileElement) elementLeaf {
+	return elementLeaf{&e.StateElement, hashAll("leaf/bigfile", e.ID, V2BigFileOutput(e.BigFileOutput), e.MaturityHeight)}
 }
 
 func siafundLeaf(e *SiafundElement) elementLeaf {
@@ -53,8 +53,8 @@ func forEachElementLeaf(txns []V2Transaction, fn func(l elementLeaf)) {
 		}
 	}
 	for _, txn := range txns {
-		for i := range txn.SiacoinInputs {
-			visit(siacoinLeaf(&txn.SiacoinInputs[i].Parent))
+		for i := range txn.BigFileInputs {
+			visit(siacoinLeaf(&txn.BigFileInputs[i].Parent))
 		}
 		for i := range txn.SiafundInputs {
 			visit(siafundLeaf(&txn.SiafundInputs[i].Parent))

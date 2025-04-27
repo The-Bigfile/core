@@ -337,35 +337,35 @@ func ApplyOrphan(s State, b types.Block, targetTimestamp time.Time) State {
 	return next
 }
 
-func (ms *MidState) recordSiacoinElement(id types.SiacoinOutputID) *SiacoinElementDiff {
+func (ms *MidState) recordBigFileElement(id types.BigFileOutputID) *BigFileElementDiff {
 	if i, ok := ms.elements[id]; ok {
 		return &ms.sces[i]
 	}
-	ms.sces = append(ms.sces, SiacoinElementDiff{})
+	ms.sces = append(ms.sces, BigFileElementDiff{})
 	ms.elements[id] = len(ms.sces) - 1
 	return &ms.sces[len(ms.sces)-1]
 }
 
-func (ms *MidState) createSiacoinElement(id types.SiacoinOutputID, sco types.SiacoinOutput) *SiacoinElementDiff {
-	sced := ms.recordSiacoinElement(id)
-	sced.SiacoinElement = types.SiacoinElement{
+func (ms *MidState) createBigFileElement(id types.BigFileOutputID, sco types.BigFileOutput) *BigFileElementDiff {
+	sced := ms.recordBigFileElement(id)
+	sced.BigFileElement = types.BigFileElement{
 		StateElement:  types.StateElement{LeafIndex: types.UnassignedLeafIndex},
 		ID:            id,
-		SiacoinOutput: sco,
+		BigFileOutput: sco,
 	}
 	sced.Created = true
 	return sced
 }
 
-func (ms *MidState) createImmatureSiacoinElement(id types.SiacoinOutputID, sco types.SiacoinOutput) *SiacoinElementDiff {
-	sced := ms.createSiacoinElement(id, sco)
-	sced.SiacoinElement.MaturityHeight = ms.base.MaturityHeight()
+func (ms *MidState) createImmatureBigFileElement(id types.BigFileOutputID, sco types.BigFileOutput) *BigFileElementDiff {
+	sced := ms.createBigFileElement(id, sco)
+	sced.BigFileElement.MaturityHeight = ms.base.MaturityHeight()
 	return sced
 }
 
-func (ms *MidState) spendSiacoinElement(sce types.SiacoinElement, txid types.TransactionID) {
-	sced := ms.recordSiacoinElement(sce.ID)
-	sced.SiacoinElement = sce.Copy()
+func (ms *MidState) spendBigFileElement(sce types.BigFileElement, txid types.TransactionID) {
+	sced := ms.recordBigFileElement(sce.ID)
+	sced.BigFileElement = sce.Copy()
 	sced.Spent = true
 	ms.spends[sce.ID] = txid
 }
@@ -493,15 +493,15 @@ func (ms *MidState) createAttestationElement(id types.AttestationID, a types.Att
 // ApplyTransaction applies a transaction to the MidState.
 func (ms *MidState) ApplyTransaction(txn types.Transaction, ts V1TransactionSupplement) {
 	txid := txn.ID()
-	for _, sci := range txn.SiacoinInputs {
+	for _, sci := range txn.BigFileInputs {
 		sce, ok := ms.siacoinElement(ts, sci.ParentID)
 		if !ok {
-			panic("missing SiacoinElement")
+			panic("missing BigFileElement")
 		}
-		ms.spendSiacoinElement(sce.Share(), txid)
+		ms.spendBigFileElement(sce.Share(), txid)
 	}
-	for i, sco := range txn.SiacoinOutputs {
-		ms.createSiacoinElement(txn.SiacoinOutputID(i), sco)
+	for i, sco := range txn.BigFileOutputs {
+		ms.createBigFileElement(txn.BigFileOutputID(i), sco)
 	}
 	for _, sfi := range txn.SiafundInputs {
 		sfe, ok := ms.siafundElement(ts, sfi.ParentID)
@@ -510,7 +510,7 @@ func (ms *MidState) ApplyTransaction(txn types.Transaction, ts V1TransactionSupp
 		}
 		claimPortion := ms.siafundTaxRevenue.Sub(sfe.ClaimStart).Div64(ms.base.SiafundCount()).Mul64(sfe.SiafundOutput.Value)
 		ms.spendSiafundElement(sfe.Share(), txid)
-		ms.createImmatureSiacoinElement(sfi.ParentID.ClaimOutputID(), types.SiacoinOutput{Value: claimPortion, Address: sfi.ClaimAddress})
+		ms.createImmatureBigFileElement(sfi.ParentID.ClaimOutputID(), types.BigFileOutput{Value: claimPortion, Address: sfi.ClaimAddress})
 	}
 	for i, sfo := range txn.SiafundOutputs {
 		ms.createSiafundElement(txn.SiafundOutputID(i), sfo)
@@ -532,7 +532,7 @@ func (ms *MidState) ApplyTransaction(txn types.Transaction, ts V1TransactionSupp
 		}
 		ms.resolveFileContractElement(fce.Share(), true, txid)
 		for i, sco := range fce.FileContract.ValidProofOutputs {
-			ms.createImmatureSiacoinElement(sp.ParentID.ValidOutputID(i), sco)
+			ms.createImmatureBigFileElement(sp.ParentID.ValidOutputID(i), sco)
 		}
 	}
 	if ms.base.Index.Height >= ms.base.Network.HardforkFoundation.Height {
@@ -551,16 +551,16 @@ func (ms *MidState) ApplyTransaction(txn types.Transaction, ts V1TransactionSupp
 func (ms *MidState) ApplyV2Transaction(txn types.V2Transaction) {
 	txid := txn.ID()
 
-	for _, sci := range txn.SiacoinInputs {
-		ms.spendSiacoinElement(sci.Parent.Share(), txid)
+	for _, sci := range txn.BigFileInputs {
+		ms.spendBigFileElement(sci.Parent.Share(), txid)
 	}
-	for i, sco := range txn.SiacoinOutputs {
-		ms.createSiacoinElement(txn.SiacoinOutputID(txid, i), sco)
+	for i, sco := range txn.BigFileOutputs {
+		ms.createBigFileElement(txn.BigFileOutputID(txid, i), sco)
 	}
 	for _, sfi := range txn.SiafundInputs {
 		ms.spendSiafundElement(sfi.Parent.Share(), txid)
 		claimPortion := ms.siafundTaxRevenue.Sub(sfi.Parent.ClaimStart).Div64(ms.base.SiafundCount()).Mul64(sfi.Parent.SiafundOutput.Value)
-		ms.createImmatureSiacoinElement(sfi.Parent.ID.V2ClaimOutputID(), types.SiacoinOutput{Value: claimPortion, Address: sfi.ClaimAddress})
+		ms.createImmatureBigFileElement(sfi.Parent.ID.V2ClaimOutputID(), types.BigFileOutput{Value: claimPortion, Address: sfi.ClaimAddress})
 	}
 	for i, sfo := range txn.SiafundOutputs {
 		ms.createSiafundElement(txn.SiafundOutputID(txid, i), sfo)
@@ -575,7 +575,7 @@ func (ms *MidState) ApplyV2Transaction(txn types.V2Transaction) {
 		ms.resolveV2FileContractElement(fcr.Parent.Share(), fcr.Resolution, txid)
 
 		fc := fcr.Parent.V2FileContract
-		var renter, host types.SiacoinOutput
+		var renter, host types.BigFileOutput
 		switch r := fcr.Resolution.(type) {
 		case *types.V2FileContractRenewal:
 			renter, host = r.FinalRenterOutput, r.FinalHostOutput
@@ -587,8 +587,8 @@ func (ms *MidState) ApplyV2Transaction(txn types.V2Transaction) {
 		default:
 			panic(fmt.Sprintf("unhandled resolution type %T", r))
 		}
-		ms.createImmatureSiacoinElement(fcr.Parent.ID.V2RenterOutputID(), renter)
-		ms.createImmatureSiacoinElement(fcr.Parent.ID.V2HostOutputID(), host)
+		ms.createImmatureBigFileElement(fcr.Parent.ID.V2RenterOutputID(), renter)
+		ms.createImmatureBigFileElement(fcr.Parent.ID.V2HostOutputID(), host)
 	}
 	for i, a := range txn.Attestations {
 		ms.createAttestationElement(txn.AttestationID(txid, i), a)
@@ -614,10 +614,10 @@ func (ms *MidState) ApplyBlock(b types.Block, bs V1BlockSupplement) {
 	}
 	bid := b.ID()
 	for i, sco := range b.MinerPayouts {
-		ms.createImmatureSiacoinElement(bid.MinerOutputID(i), sco)
+		ms.createImmatureBigFileElement(bid.MinerOutputID(i), sco)
 	}
 	if subsidy, ok := ms.base.FoundationSubsidy(); ok {
-		ms.createImmatureSiacoinElement(bid.FoundationOutputID(), subsidy)
+		ms.createImmatureBigFileElement(bid.FoundationOutputID(), subsidy)
 	}
 	for _, fce := range bs.ExpiringFileContracts {
 		if ms.isSpent(fce.ID) {
@@ -625,7 +625,7 @@ func (ms *MidState) ApplyBlock(b types.Block, bs V1BlockSupplement) {
 		}
 		ms.resolveFileContractElement(fce.Share(), false, types.TransactionID(bid))
 		for i, sco := range fce.FileContract.MissedProofOutputs {
-			ms.createImmatureSiacoinElement(fce.ID.MissedOutputID(i), sco)
+			ms.createImmatureBigFileElement(fce.ID.MissedOutputID(i), sco)
 		}
 	}
 
@@ -636,10 +636,10 @@ func (ms *MidState) ApplyBlock(b types.Block, bs V1BlockSupplement) {
 	}
 }
 
-func forEachAppliedElement(sces []SiacoinElementDiff, sfes []SiafundElementDiff, fces []FileContractElementDiff, v2fces []V2FileContractElementDiff, aes []types.AttestationElement, cie *types.ChainIndexElement, fn func(elementLeaf)) {
+func forEachAppliedElement(sces []BigFileElementDiff, sfes []SiafundElementDiff, fces []FileContractElementDiff, v2fces []V2FileContractElementDiff, aes []types.AttestationElement, cie *types.ChainIndexElement, fn func(elementLeaf)) {
 	for i := range sces {
 		sce := &sces[i]
-		fn(siacoinLeaf(&sce.SiacoinElement, sce.Spent))
+		fn(siacoinLeaf(&sce.BigFileElement, sce.Spent))
 	}
 	for i := range sfes {
 		sfe := &sfes[i]
@@ -654,7 +654,7 @@ func forEachAppliedElement(sces []SiacoinElementDiff, sfes []SiafundElementDiff,
 		fn(v2FileContractLeaf(&v2fce.V2FileContractElement, v2fce.Revision, v2fce.Resolution != nil))
 		// NOTE: Although it is an element, we do not process the ProofIndex
 		// field of V2StorageProofs. These are a special case, as they are not
-		// being updated (like e.g. siacoin inputs), nor are they being created
+		// being updated (like e.g. bigfile inputs), nor are they being created
 		// (like e.g. attestations). In other words, they have no effect on the
 		// accumulator, and thus including them would only cause confusion.
 	}
@@ -664,9 +664,9 @@ func forEachAppliedElement(sces []SiacoinElementDiff, sfes []SiafundElementDiff,
 	fn(chainIndexLeaf(cie))
 }
 
-func forEachRevertedElement(sces []SiacoinElementDiff, sfes []SiafundElementDiff, fces []FileContractElementDiff, v2fces []V2FileContractElementDiff, fn func(elementLeaf)) {
+func forEachRevertedElement(sces []BigFileElementDiff, sfes []SiafundElementDiff, fces []FileContractElementDiff, v2fces []V2FileContractElementDiff, fn func(elementLeaf)) {
 	for i := range sces {
-		fn(siacoinLeaf(&sces[i].SiacoinElement, false))
+		fn(siacoinLeaf(&sces[i].BigFileElement, false))
 	}
 	for i := range sfes {
 		fn(siafundLeaf(&sfes[i].SiafundElement, false))
@@ -681,7 +681,7 @@ func forEachRevertedElement(sces []SiacoinElementDiff, sfes []SiafundElementDiff
 
 // An ApplyUpdate represents the effects of applying a block to a state.
 type ApplyUpdate struct {
-	sces   []SiacoinElementDiff
+	sces   []BigFileElementDiff
 	sfes   []SiafundElementDiff
 	fces   []FileContractElementDiff
 	v2fces []V2FileContractElementDiff
@@ -691,9 +691,9 @@ type ApplyUpdate struct {
 	eau elementApplyUpdate
 }
 
-// SiacoinElementDiffs returns the siacoin element diffs related to the applied
+// BigFileElementDiffs returns the bigfile element diffs related to the applied
 // block.
-func (au ApplyUpdate) SiacoinElementDiffs() []SiacoinElementDiff { return au.sces }
+func (au ApplyUpdate) BigFileElementDiffs() []BigFileElementDiff { return au.sces }
 
 // SiafundElementDiffs returns the siafund element diffs related to the applied
 // block.
@@ -773,15 +773,15 @@ func ApplyBlock(s State, b types.Block, bs V1BlockSupplement, targetTimestamp ti
 
 // A RevertUpdate represents the effects of reverting to a prior state. These
 // are the same effects seen as when applying the block, but should be processed
-// inversely. For example, if SiacoinElementDiffs reports an element with the
+// inversely. For example, if BigFileElementDiffs reports an element with the
 // Created flag set, it means the block created that element when it was
 // applied; thus, when the block is reverted, the element no longer exists.
 //
 // Furthermore, the order of all diffs is reversed: if the block first created a
-// siacoin element, then later spent it, SiacoinElementDiffs will show the
+// bigfile element, then later spent it, BigFileElementDiffs will show the
 // element being spent, then later created. This simplifies diff processing.
 type RevertUpdate struct {
-	sces   []SiacoinElementDiff
+	sces   []BigFileElementDiff
 	sfes   []SiafundElementDiff
 	fces   []FileContractElementDiff
 	v2fces []V2FileContractElementDiff
@@ -791,9 +791,9 @@ type RevertUpdate struct {
 	eru elementRevertUpdate
 }
 
-// SiacoinElementDiffs returns the siacoin element diffs related to the applied
+// BigFileElementDiffs returns the bigfile element diffs related to the applied
 // block.
-func (ru RevertUpdate) SiacoinElementDiffs() []SiacoinElementDiff { return ru.sces }
+func (ru RevertUpdate) BigFileElementDiffs() []BigFileElementDiff { return ru.sces }
 
 // SiafundElementDiffs returns the siafund element diffs related to the applied
 // block.
@@ -878,7 +878,7 @@ func RevertBlock(s State, b types.Block, bs V1BlockSupplement) RevertUpdate {
 // condensed representation of the update types for JSON marshaling
 type (
 	applyUpdateJSON struct {
-		SiacoinElements            []SiacoinElementDiff        `json:"siacoinElements"`
+		BigFileElements            []BigFileElementDiff        `json:"bigfileElements"`
 		SiafundElementDiffs        []SiafundElementDiff        `json:"siafundElementDiffs"`
 		FileContractElementDiffs   []FileContractElementDiff   `json:"fileContractElementDiffs"`
 		V2FileContractElementDiffs []V2FileContractElementDiff `json:"v2FileContractElementDiffs"`
@@ -892,7 +892,7 @@ type (
 	}
 
 	revertUpdateJSON struct {
-		SiacoinElements            []SiacoinElementDiff        `json:"siacoinElements"`
+		BigFileElements            []BigFileElementDiff        `json:"bigfileElements"`
 		SiafundElementDiffs        []SiafundElementDiff        `json:"siafundElementDiffs"`
 		FileContractElementDiffs   []FileContractElementDiff   `json:"fileContractElementDiffs"`
 		V2FileContractElementDiffs []V2FileContractElementDiff `json:"v2FileContractElementDiffs"`
@@ -907,7 +907,7 @@ type (
 // MarshalJSON implements json.Marshaler.
 func (au ApplyUpdate) MarshalJSON() ([]byte, error) {
 	js := applyUpdateJSON{
-		SiacoinElements:            au.sces,
+		BigFileElements:            au.sces,
 		SiafundElementDiffs:        au.sfes,
 		FileContractElementDiffs:   au.fces,
 		V2FileContractElementDiffs: au.v2fces,
@@ -937,7 +937,7 @@ func (au *ApplyUpdate) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &js); err != nil {
 		return err
 	}
-	au.sces = js.SiacoinElements
+	au.sces = js.BigFileElements
 	au.sfes = js.SiafundElementDiffs
 	au.fces = js.FileContractElementDiffs
 	au.v2fces = js.V2FileContractElementDiffs
@@ -960,7 +960,7 @@ func (au *ApplyUpdate) UnmarshalJSON(b []byte) error {
 // MarshalJSON implements json.Marshaler.
 func (ru RevertUpdate) MarshalJSON() ([]byte, error) {
 	js := revertUpdateJSON{
-		SiacoinElements:            ru.sces,
+		BigFileElements:            ru.sces,
 		SiafundElementDiffs:        ru.sfes,
 		FileContractElementDiffs:   ru.fces,
 		V2FileContractElementDiffs: ru.v2fces,
@@ -983,7 +983,7 @@ func (ru *RevertUpdate) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &js); err != nil {
 		return err
 	}
-	ru.sces = js.SiacoinElements
+	ru.sces = js.BigFileElements
 	ru.sfes = js.SiafundElementDiffs
 	ru.fces = js.FileContractElementDiffs
 	ru.v2fces = js.V2FileContractElementDiffs

@@ -187,8 +187,8 @@ type (
 	// outputs added by the host when negotiating a file contract.
 	RPCFormContractAdditions struct {
 		Parents []types.Transaction
-		Inputs  []types.SiacoinInput
-		Outputs []types.SiacoinOutput
+		Inputs  []types.BigFileInput
+		Outputs []types.BigFileOutput
 	}
 
 	// RPCFormContractSignatures contains the signatures for a contract

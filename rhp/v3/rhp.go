@@ -528,8 +528,8 @@ type (
 	// additions for the renew contract RPC.
 	RPCRenewContractHostAdditions struct {
 		Parents                []types.Transaction
-		SiacoinInputs          []types.SiacoinInput
-		SiacoinOutputs         []types.SiacoinOutput
+		BigFileInputs          []types.BigFileInput
+		BigFileOutputs         []types.BigFileOutput
 		FinalRevisionSignature types.Signature
 	}
 

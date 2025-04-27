@@ -28,7 +28,7 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 				// NOTE: this creates more elements than necessary, but that's
 				// desirable; otherwise they'll be contiguous and we'll end up
 				// with an uncharacteristically-small multiproof
-				SiacoinOutputs: make([]types.SiacoinOutput, numTxns*numElems),
+				BigFileOutputs: make([]types.BigFileOutput, numTxns*numElems),
 				SiafundOutputs: make([]types.SiafundOutput, numTxns*numElems),
 				FileContracts:  make([]types.V2FileContract, numTxns*numElems),
 			}},
@@ -36,9 +36,9 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 	}
 	// apply the block and extract the created elements
 	cs, cau := consensus.ApplyBlock(cs, b, consensus.V1BlockSupplement{}, time.Time{})
-	sces := make([]types.SiacoinElement, len(cau.SiacoinElementDiffs()))
+	sces := make([]types.BigFileElement, len(cau.BigFileElementDiffs()))
 	for i := range sces {
-		sces[i] = cau.SiacoinElementDiffs()[i].SiacoinElement.Copy()
+		sces[i] = cau.BigFileElementDiffs()[i].BigFileElement.Copy()
 	}
 	sfes := make([]types.SiafundElement, len(cau.SiafundElementDiffs()))
 	for i := range sfes {
@@ -63,7 +63,7 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 		for j := 0; j < numElems; j++ {
 			switch j % 4 {
 			case 0:
-				txn.SiacoinInputs, sces = append(txn.SiacoinInputs, types.V2SiacoinInput{
+				txn.BigFileInputs, sces = append(txn.BigFileInputs, types.V2BigFileInput{
 					Parent:          sces[0].Copy(),
 					SatisfiedPolicy: sp,
 				}), sces[1:]
@@ -84,12 +84,12 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 			}
 		}
 	}
-	// make every 5th siacoin input ephemeral
+	// make every 5th bigfile input ephemeral
 	n := 0
 	for i := range txns {
-		for j := range txns[i].SiacoinInputs {
+		for j := range txns[i].BigFileInputs {
 			if (n+1)%5 == 0 {
-				txns[i].SiacoinInputs[j].Parent.StateElement = types.StateElement{LeafIndex: types.UnassignedLeafIndex}
+				txns[i].BigFileInputs[j].Parent.StateElement = types.StateElement{LeafIndex: types.UnassignedLeafIndex}
 			}
 			n++
 		}
