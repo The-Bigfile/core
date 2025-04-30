@@ -9,7 +9,7 @@ import (
 
 	"go.thebigfile.com/core/internal/smux"
 	"go.thebigfile.com/core/types"
-	"go.sia.tech/mux"
+	"go.thebigfile.com/mux"
 	"lukechampine.com/frand"
 )
 

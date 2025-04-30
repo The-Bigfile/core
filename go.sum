@@ -1,7 +1,7 @@
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-go.sia.tech/mux v1.4.0 h1:LgsLHtn7l+25MwrgaPaUCaS8f2W2/tfvHIdXps04sVo=
-go.sia.tech/mux v1.4.0/go.mod h1:iNFi9ifFb2XhuD+LF4t2HBb4Mvgq/zIPKqwXU/NlqHA=
+go.thebigfile.com/mux v0.0.1 h1:BfsWkNBv648G/2ZGQ9gQefrdMvNydY7kIK+Jtdm0o1M=
+go.thebigfile.com/mux v0.0.1/go.mod h1:+DmAbPgE/AVqt1tAN1WfOiO5xl2m/B2MvyMku1qtVVQ=
 golang.org/x/crypto v0.37.0 h1:kJNSjF/Xp7kU0iB2Z+9viTPMW4EqqsrywMXLJOOsXSE=
 golang.org/x/crypto v0.37.0/go.mod h1:vg+k43peMZ0pUMhYmVAWysMK35e6ioLh3wB8ZCAfbVc=
 golang.org/x/mod v0.24.0 h1:ZfthKaKaT4NrhGVZHO1/WDTwGES4De8KtWO0SIbNJMU=

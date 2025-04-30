@@ -1,11 +1,11 @@
-module go.thebigfile.com/core // v0.0.5
+module go.thebigfile.com/core // v0.0.6
 
 go 1.23.1
 
 toolchain go1.23.2
 
 require (
-	go.sia.tech/mux v1.4.0
+	go.thebigfile.com/mux v0.0.1
 	golang.org/x/crypto v0.37.0
 	golang.org/x/sys v0.32.0
 	lukechampine.com/frand v1.5.1
