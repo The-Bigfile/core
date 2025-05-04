@@ -72,7 +72,7 @@ func readHeader(conn net.Conn, ourHeader Header, dialAddr *string, uniqueID *Uni
 	return nil
 }
 
-// A Transport provides a multiplexing transport for the Sia gateway protocol.
+// A Transport provides a multiplexing transport for the Bigfile gateway protocol.
 type Transport struct {
 	UniqueID UniqueID
 	Version  string
@@ -111,7 +111,7 @@ func (t *Transport) Close() error {
 	return t.mux.Close()
 }
 
-// A Stream provides a multiplexed stream for the Sia gateway protocol.
+// A Stream provides a multiplexed stream for the Bigfile gateway protocol.
 type Stream struct {
 	smux *smux.Stream // for v1
 	mux  *mux.Stream  // for v2

@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-// An Encoder writes Sia objects to an underlying stream.
+// An Encoder writes Bigfile objects to an underlying stream.
 type Encoder struct {
 	w   io.Writer
 	buf [1024]byte
@@ -435,33 +435,33 @@ func (bigo V2BigFileOutput) EncodeTo(e *Encoder) {
 // EncodeTo implements types.EncoderTo.
 func (id BigFileOutputID) EncodeTo(e *Encoder) { e.Write(id[:]) }
 
-// V1SiafundOutput provides v1 encoding for SiafundOutput.
-type V1SiafundOutput SiafundOutput
+// V1BigfundOutput provides v1 encoding for BigfundOutput.
+type V1BigfundOutput BigfundOutput
 
-// V2SiafundOutput provides v2 encoding for SiafundOutput.
-type V2SiafundOutput SiafundOutput
-
-// Cast provides type safety for DecodeSliceCast.
-func (sfo V1SiafundOutput) Cast() SiafundOutput { return SiafundOutput(sfo) }
+// V2BigfundOutput provides v2 encoding for BigfundOutput.
+type V2BigfundOutput BigfundOutput
 
 // Cast provides type safety for DecodeSliceCast.
-func (sfo V2SiafundOutput) Cast() SiafundOutput { return SiafundOutput(sfo) }
+func (bfo V1BigfundOutput) Cast() BigfundOutput { return BigfundOutput(bfo) }
+
+// Cast provides type safety for DecodeSliceCast.
+func (bfo V2BigfundOutput) Cast() BigfundOutput { return BigfundOutput(bfo) }
 
 // EncodeTo implements types.EncoderTo.
-func (sfo V1SiafundOutput) EncodeTo(e *Encoder) {
-	V1Currency(NewCurrency64(sfo.Value)).EncodeTo(e)
-	sfo.Address.EncodeTo(e)
+func (bfo V1BigfundOutput) EncodeTo(e *Encoder) {
+	V1Currency(NewCurrency64(bfo.Value)).EncodeTo(e)
+	bfo.Address.EncodeTo(e)
 	(V1Currency{}).EncodeTo(e) // siad expects a "ClaimStart" value
 }
 
 // EncodeTo implements types.EncoderTo.
-func (sfo V2SiafundOutput) EncodeTo(e *Encoder) {
-	e.WriteUint64(sfo.Value)
-	sfo.Address.EncodeTo(e)
+func (bfo V2BigfundOutput) EncodeTo(e *Encoder) {
+	e.WriteUint64(bfo.Value)
+	bfo.Address.EncodeTo(e)
 }
 
 // EncodeTo implements types.EncoderTo.
-func (id SiafundOutputID) EncodeTo(e *Encoder) { e.Write(id[:]) }
+func (id BigfundOutputID) EncodeTo(e *Encoder) { e.Write(id[:]) }
 
 // EncodeTo implements types.EncoderTo.
 func (in BigFileInput) EncodeTo(e *Encoder) {
@@ -470,7 +470,7 @@ func (in BigFileInput) EncodeTo(e *Encoder) {
 }
 
 // EncodeTo implements types.EncoderTo.
-func (in SiafundInput) EncodeTo(e *Encoder) {
+func (in BigfundInput) EncodeTo(e *Encoder) {
 	in.ParentID.EncodeTo(e)
 	in.UnlockConditions.EncodeTo(e)
 	in.ClaimAddress.EncodeTo(e)
@@ -527,8 +527,8 @@ func (cf CoveredFields) EncodeTo(e *Encoder) {
 	EncodeSliceFn(e, cf.FileContracts, (*Encoder).WriteUint64)
 	EncodeSliceFn(e, cf.FileContractRevisions, (*Encoder).WriteUint64)
 	EncodeSliceFn(e, cf.StorageProofs, (*Encoder).WriteUint64)
-	EncodeSliceFn(e, cf.SiafundInputs, (*Encoder).WriteUint64)
-	EncodeSliceFn(e, cf.SiafundOutputs, (*Encoder).WriteUint64)
+	EncodeSliceFn(e, cf.BigfundInputs, (*Encoder).WriteUint64)
+	EncodeSliceFn(e, cf.BigfundOutputs, (*Encoder).WriteUint64)
 	EncodeSliceFn(e, cf.MinerFees, (*Encoder).WriteUint64)
 	EncodeSliceFn(e, cf.ArbitraryData, (*Encoder).WriteUint64)
 	EncodeSliceFn(e, cf.Signatures, (*Encoder).WriteUint64)
@@ -551,8 +551,8 @@ func (txn txnSansSigs) EncodeTo(e *Encoder) {
 	EncodeSlice(e, txn.FileContracts)
 	EncodeSlice(e, txn.FileContractRevisions)
 	EncodeSlice(e, txn.StorageProofs)
-	EncodeSlice(e, txn.SiafundInputs)
-	EncodeSliceCast[V1SiafundOutput](e, txn.SiafundOutputs)
+	EncodeSlice(e, txn.BigfundInputs)
+	EncodeSliceCast[V1BigfundOutput](e, txn.BigfundOutputs)
 	EncodeSliceCast[V1Currency](e, txn.MinerFees)
 	EncodeSliceFn(e, txn.ArbitraryData, (*Encoder).WriteBytes)
 }
@@ -649,18 +649,18 @@ func (bige BigFileElement) EncodeTo(e *Encoder) {
 }
 
 // EncodeTo implements types.EncoderTo.
-func (in V2SiafundInput) EncodeTo(e *Encoder) {
+func (in V2BigfundInput) EncodeTo(e *Encoder) {
 	in.Parent.EncodeTo(e)
 	in.ClaimAddress.EncodeTo(e)
 	in.SatisfiedPolicy.EncodeTo(e)
 }
 
 // EncodeTo implements types.EncoderTo.
-func (sfe SiafundElement) EncodeTo(e *Encoder) {
-	sfe.StateElement.EncodeTo(e)
-	sfe.ID.EncodeTo(e)
-	V2SiafundOutput(sfe.SiafundOutput).EncodeTo(e)
-	V2Currency(sfe.ClaimStart).EncodeTo(e)
+func (bfe BigfundElement) EncodeTo(e *Encoder) {
+	bfe.StateElement.EncodeTo(e)
+	bfe.ID.EncodeTo(e)
+	V2BigfundOutput(bfe.BigfundOutput).EncodeTo(e)
+	V2Currency(bfe.ClaimStart).EncodeTo(e)
 }
 
 // EncodeTo implements types.EncoderTo.
@@ -755,8 +755,8 @@ func (txn V2Transaction) EncodeTo(e *Encoder) {
 	for i, b := range [...]bool{
 		len(txn.BigFileInputs) != 0,
 		len(txn.BigFileOutputs) != 0,
-		len(txn.SiafundInputs) != 0,
-		len(txn.SiafundOutputs) != 0,
+		len(txn.BigfundInputs) != 0,
+		len(txn.BigfundOutputs) != 0,
 		len(txn.FileContracts) != 0,
 		len(txn.FileContractRevisions) != 0,
 		len(txn.FileContractResolutions) != 0,
@@ -778,10 +778,10 @@ func (txn V2Transaction) EncodeTo(e *Encoder) {
 		EncodeSliceCast[V2BigFileOutput](e, txn.BigFileOutputs)
 	}
 	if fields&(1<<2) != 0 {
-		EncodeSlice(e, txn.SiafundInputs)
+		EncodeSlice(e, txn.BigfundInputs)
 	}
 	if fields&(1<<3) != 0 {
-		EncodeSliceCast[V2SiafundOutput](e, txn.SiafundOutputs)
+		EncodeSliceCast[V2BigfundOutput](e, txn.BigfundOutputs)
 	}
 	if fields&(1<<4) != 0 {
 		EncodeSlice(e, txn.FileContracts)
@@ -826,13 +826,13 @@ func (txn V2TransactionSemantics) EncodeTo(e *Encoder) {
 	for _, out := range txn.BigFileOutputs {
 		V2BigFileOutput(out).EncodeTo(e)
 	}
-	e.WriteUint64(uint64(len(txn.SiafundInputs)))
-	for _, in := range txn.SiafundInputs {
+	e.WriteUint64(uint64(len(txn.BigfundInputs)))
+	for _, in := range txn.BigfundInputs {
 		in.Parent.ID.EncodeTo(e)
 	}
-	e.WriteUint64(uint64(len(txn.SiafundOutputs)))
-	for _, out := range txn.SiafundOutputs {
-		V2SiafundOutput(out).EncodeTo(e)
+	e.WriteUint64(uint64(len(txn.BigfundOutputs)))
+	for _, out := range txn.BigfundOutputs {
+		V2BigfundOutput(out).EncodeTo(e)
 	}
 	e.WriteUint64(uint64(len(txn.FileContracts)))
 	for _, fc := range txn.FileContracts {
@@ -993,26 +993,26 @@ func (bigo *V2BigFileOutput) DecodeFrom(d *Decoder) {
 func (id *BigFileOutputID) DecodeFrom(d *Decoder) { d.Read(id[:]) }
 
 // DecodeFrom implements types.DecoderFrom.
-func (sfo *V1SiafundOutput) DecodeFrom(d *Decoder) {
+func (bfo *V1BigfundOutput) DecodeFrom(d *Decoder) {
 	var val V1Currency
 	val.DecodeFrom(d)
 	if val.Hi != 0 {
-		d.SetErr(errors.New("value overflows siafund representation"))
+		d.SetErr(errors.New("value overflows bigfund representation"))
 		return
 	}
-	sfo.Value = val.Lo
-	sfo.Address.DecodeFrom(d)
+	bfo.Value = val.Lo
+	bfo.Address.DecodeFrom(d)
 	(&V1Currency{}).DecodeFrom(d) // siad expects a "ClaimStart" value
 }
 
 // DecodeFrom implements types.DecoderFrom.
-func (sfo *V2SiafundOutput) DecodeFrom(d *Decoder) {
-	sfo.Value = d.ReadUint64()
-	sfo.Address.DecodeFrom(d)
+func (bfo *V2BigfundOutput) DecodeFrom(d *Decoder) {
+	bfo.Value = d.ReadUint64()
+	bfo.Address.DecodeFrom(d)
 }
 
 // DecodeFrom implements types.DecoderFrom.
-func (id *SiafundOutputID) DecodeFrom(d *Decoder) { d.Read(id[:]) }
+func (id *BigfundOutputID) DecodeFrom(d *Decoder) { d.Read(id[:]) }
 
 // DecodeFrom implements types.DecoderFrom.
 func (in *BigFileInput) DecodeFrom(d *Decoder) {
@@ -1021,7 +1021,7 @@ func (in *BigFileInput) DecodeFrom(d *Decoder) {
 }
 
 // DecodeFrom implements types.DecoderFrom.
-func (in *SiafundInput) DecodeFrom(d *Decoder) {
+func (in *BigfundInput) DecodeFrom(d *Decoder) {
 	in.ParentID.DecodeFrom(d)
 	in.UnlockConditions.DecodeFrom(d)
 	in.ClaimAddress.DecodeFrom(d)
@@ -1081,8 +1081,8 @@ func (cf *CoveredFields) DecodeFrom(d *Decoder) {
 	DecodeSliceFn(d, &cf.FileContracts, (*Decoder).ReadUint64)
 	DecodeSliceFn(d, &cf.FileContractRevisions, (*Decoder).ReadUint64)
 	DecodeSliceFn(d, &cf.StorageProofs, (*Decoder).ReadUint64)
-	DecodeSliceFn(d, &cf.SiafundInputs, (*Decoder).ReadUint64)
-	DecodeSliceFn(d, &cf.SiafundOutputs, (*Decoder).ReadUint64)
+	DecodeSliceFn(d, &cf.BigfundInputs, (*Decoder).ReadUint64)
+	DecodeSliceFn(d, &cf.BigfundOutputs, (*Decoder).ReadUint64)
 	DecodeSliceFn(d, &cf.MinerFees, (*Decoder).ReadUint64)
 	DecodeSliceFn(d, &cf.ArbitraryData, (*Decoder).ReadUint64)
 	DecodeSliceFn(d, &cf.Signatures, (*Decoder).ReadUint64)
@@ -1104,8 +1104,8 @@ func (txn *Transaction) DecodeFrom(d *Decoder) {
 	DecodeSlice(d, &txn.FileContracts)
 	DecodeSlice(d, &txn.FileContractRevisions)
 	DecodeSlice(d, &txn.StorageProofs)
-	DecodeSlice(d, &txn.SiafundInputs)
-	DecodeSliceCast[V1SiafundOutput](d, &txn.SiafundOutputs)
+	DecodeSlice(d, &txn.BigfundInputs)
+	DecodeSliceCast[V1BigfundOutput](d, &txn.BigfundOutputs)
 	DecodeSliceCast[V1Currency](d, &txn.MinerFees)
 	DecodeSliceFn(d, &txn.ArbitraryData, (*Decoder).ReadBytes)
 	DecodeSlice(d, &txn.Signatures)
@@ -1210,18 +1210,18 @@ func (bige *BigFileElement) DecodeFrom(d *Decoder) {
 }
 
 // DecodeFrom implements types.DecoderFrom.
-func (in *V2SiafundInput) DecodeFrom(d *Decoder) {
+func (in *V2BigfundInput) DecodeFrom(d *Decoder) {
 	in.Parent.DecodeFrom(d)
 	in.ClaimAddress.DecodeFrom(d)
 	in.SatisfiedPolicy.DecodeFrom(d)
 }
 
 // DecodeFrom implements types.DecoderFrom.
-func (sfe *SiafundElement) DecodeFrom(d *Decoder) {
-	sfe.StateElement.DecodeFrom(d)
-	sfe.ID.DecodeFrom(d)
-	(*V2SiafundOutput)(&sfe.SiafundOutput).DecodeFrom(d)
-	(*V2Currency)(&sfe.ClaimStart).DecodeFrom(d)
+func (bfe *BigfundElement) DecodeFrom(d *Decoder) {
+	bfe.StateElement.DecodeFrom(d)
+	bfe.ID.DecodeFrom(d)
+	(*V2BigfundOutput)(&bfe.BigfundOutput).DecodeFrom(d)
+	(*V2Currency)(&bfe.ClaimStart).DecodeFrom(d)
 }
 
 // DecodeFrom implements types.DecoderFrom.
@@ -1323,10 +1323,10 @@ func (txn *V2Transaction) DecodeFrom(d *Decoder) {
 		DecodeSliceCast[V2BigFileOutput](d, &txn.BigFileOutputs)
 	}
 	if fields&(1<<2) != 0 {
-		DecodeSlice(d, &txn.SiafundInputs)
+		DecodeSlice(d, &txn.BigfundInputs)
 	}
 	if fields&(1<<3) != 0 {
-		DecodeSliceCast[V2SiafundOutput](d, &txn.SiafundOutputs)
+		DecodeSliceCast[V2BigfundOutput](d, &txn.BigfundOutputs)
 	}
 	if fields&(1<<4) != 0 {
 		DecodeSlice(d, &txn.FileContracts)

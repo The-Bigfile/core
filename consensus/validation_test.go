@@ -44,7 +44,7 @@ func testnet() (*Network, types.Block) {
 
 type consensusDB struct {
 	biges    map[types.BigFileOutputID]types.BigFileElement
-	sfes     map[types.SiafundOutputID]types.SiafundElement
+	bfes     map[types.BigfundOutputID]types.BigfundElement
 	fces     map[types.FileContractID]types.FileContractElement
 	v2fces   map[types.FileContractID]types.V2FileContractElement
 	blockIDs []types.BlockID
@@ -55,9 +55,9 @@ func (db *consensusDB) applyBlock(au ApplyUpdate) {
 		au.UpdateElementProof(&bige.StateElement)
 		db.biges[id] = bige.Move()
 	}
-	for id, sfe := range db.sfes {
-		au.UpdateElementProof(&sfe.StateElement)
-		db.sfes[id] = sfe.Move()
+	for id, bfe := range db.bfes {
+		au.UpdateElementProof(&bfe.StateElement)
+		db.bfes[id] = bfe.Move()
 	}
 	for id, fce := range db.fces {
 		au.UpdateElementProof(&fce.StateElement)
@@ -74,11 +74,11 @@ func (db *consensusDB) applyBlock(au ApplyUpdate) {
 			db.biges[bige.BigFileElement.ID] = bige.BigFileElement.Copy()
 		}
 	}
-	for _, sfe := range au.sfes {
-		if sfe.Spent {
-			delete(db.sfes, sfe.SiafundElement.ID)
+	for _, bfe := range au.bfes {
+		if bfe.Spent {
+			delete(db.bfes, bfe.BigfundElement.ID)
 		} else {
-			db.sfes[sfe.SiafundElement.ID] = sfe.SiafundElement.Copy()
+			db.bfes[bfe.BigfundElement.ID] = bfe.BigfundElement.Copy()
 		}
 	}
 	for _, fce := range au.fces {
@@ -112,11 +112,11 @@ func (db *consensusDB) revertBlock(ru RevertUpdate) {
 			delete(db.biges, bige.BigFileElement.ID)
 		}
 	}
-	for _, sfe := range ru.sfes {
-		if sfe.Spent {
-			db.sfes[sfe.SiafundElement.ID] = sfe.SiafundElement.Copy()
+	for _, bfe := range ru.bfes {
+		if bfe.Spent {
+			db.bfes[bfe.BigfundElement.ID] = bfe.BigfundElement.Copy()
 		} else {
-			delete(db.sfes, sfe.SiafundElement.ID)
+			delete(db.bfes, bfe.BigfundElement.ID)
 		}
 	}
 	for _, fce := range ru.fces {
@@ -142,9 +142,9 @@ func (db *consensusDB) revertBlock(ru RevertUpdate) {
 		ru.UpdateElementProof(&bige.StateElement)
 		db.biges[id] = bige.Copy()
 	}
-	for id, sfe := range db.sfes {
-		ru.UpdateElementProof(&sfe.StateElement)
-		db.sfes[id] = sfe.Copy()
+	for id, bfe := range db.bfes {
+		ru.UpdateElementProof(&bfe.StateElement)
+		db.bfes[id] = bfe.Copy()
 	}
 	for id, fce := range db.fces {
 		ru.UpdateElementProof(&fce.StateElement)
@@ -167,9 +167,9 @@ func (db *consensusDB) supplementTipBlock(b types.Block) (bs V1BlockSupplement) 
 				ts.BigFileInputs = append(ts.BigFileInputs, bige.Copy())
 			}
 		}
-		for _, sfi := range txn.SiafundInputs {
-			if sfe, ok := db.sfes[sfi.ParentID]; ok {
-				ts.SiafundInputs = append(ts.SiafundInputs, sfe.Copy())
+		for _, bfi := range txn.BigfundInputs {
+			if bfe, ok := db.bfes[bfi.ParentID]; ok {
+				ts.BigfundInputs = append(ts.BigfundInputs, bfe.Copy())
 			}
 		}
 		for _, fcr := range txn.FileContractRevisions {
@@ -196,7 +196,7 @@ func (db *consensusDB) ancestorTimestamp(types.BlockID) time.Time {
 func newConsensusDB(n *Network, genesisBlock types.Block) (*consensusDB, State) {
 	db := &consensusDB{
 		biges:  make(map[types.BigFileOutputID]types.BigFileElement),
-		sfes:   make(map[types.SiafundOutputID]types.SiafundElement),
+		bfes:   make(map[types.BigfundOutputID]types.BigfundElement),
 		fces:   make(map[types.FileContractID]types.FileContractElement),
 		v2fces: make(map[types.FileContractID]types.V2FileContractElement),
 	}
@@ -239,7 +239,7 @@ func prepareContractFormation(renterPubKey types.PublicKey, hostKey types.Public
 			}
 			return types.NewCurrency64(r)
 		}
-		sfc := (State{}).SiafundCount()
+		sfc := (State{}).BigfundCount()
 		tm := mod64(target, sfc)
 		gm := mod64(guess, sfc)
 		if gm.Cmp(tm) < 0 {
@@ -291,14 +291,14 @@ func TestValidateBlock(t *testing.T) {
 	hostPublicKey := hostPrivateKey.PublicKey()
 	giftAddress := types.StandardUnlockHash(giftPublicKey)
 	giftAmountBIG := types.BigFiles(100)
-	giftAmountSF := uint64(100)
+	giftAmountBF := uint64(100)
 	giftFC := prepareContractFormation(renterPublicKey, hostPublicKey, types.BigFiles(1), types.BigFiles(1), 100, 100, types.VoidAddress)
 	giftTxn := types.Transaction{
 		BigFileOutputs: []types.BigFileOutput{
 			{Address: giftAddress, Value: giftAmountBIG},
 		},
-		SiafundOutputs: []types.SiafundOutput{
-			{Address: giftAddress, Value: giftAmountSF},
+		BigfundOutputs: []types.BigfundOutput{
+			{Address: giftAddress, Value: giftAmountBF},
 		},
 		FileContracts: []types.FileContract{giftFC},
 	}
@@ -318,8 +318,8 @@ func TestValidateBlock(t *testing.T) {
 		for i := range txn.BigFileInputs {
 			appendSig(giftPrivateKey, 0, types.Hash256(txn.BigFileInputs[i].ParentID))
 		}
-		for i := range txn.SiafundInputs {
-			appendSig(giftPrivateKey, 0, types.Hash256(txn.SiafundInputs[i].ParentID))
+		for i := range txn.BigfundInputs {
+			appendSig(giftPrivateKey, 0, types.Hash256(txn.BigfundInputs[i].ParentID))
 		}
 		for i := range txn.FileContractRevisions {
 			appendSig(renterPrivateKey, 0, types.Hash256(txn.FileContractRevisions[i].ParentID))
@@ -344,17 +344,17 @@ func TestValidateBlock(t *testing.T) {
 					ParentID:         giftTxn.BigFileOutputID(0),
 					UnlockConditions: types.StandardUnlockConditions(giftPublicKey),
 				}},
-				SiafundInputs: []types.SiafundInput{{
-					ParentID:         giftTxn.SiafundOutputID(0),
+				BigfundInputs: []types.BigfundInput{{
+					ParentID:         giftTxn.BigfundOutputID(0),
 					ClaimAddress:     types.VoidAddress,
 					UnlockConditions: types.StandardUnlockConditions(giftPublicKey),
 				}},
 				BigFileOutputs: []types.BigFileOutput{
 					{Value: giftAmountBIG.Sub(fc.Payout), Address: giftAddress},
 				},
-				SiafundOutputs: []types.SiafundOutput{
-					{Value: giftAmountSF / 2, Address: giftAddress},
-					{Value: giftAmountSF / 2, Address: types.VoidAddress},
+				BigfundOutputs: []types.BigfundOutput{
+					{Value: giftAmountBF / 2, Address: giftAddress},
+					{Value: giftAmountBF / 2, Address: types.VoidAddress},
 				},
 				FileContracts: []types.FileContract{fc},
 				FileContractRevisions: []types.FileContractRevision{
@@ -477,10 +477,10 @@ func TestValidateBlock(t *testing.T) {
 				"transaction creates a zero-valued output",
 				func(b *types.Block) {
 					txn := &b.Transactions[0]
-					for i := range txn.SiafundOutputs {
-						txn.SiafundOutputs[i].Value = 0
+					for i := range txn.BigfundOutputs {
+						txn.BigfundOutputs[i].Value = 0
 					}
-					txn.SiafundInputs = nil
+					txn.BigfundInputs = nil
 				},
 			},
 			{
@@ -513,17 +513,17 @@ func TestValidateBlock(t *testing.T) {
 				},
 			},
 			{
-				"siafund inputs (100) do not equal outputs (101)",
+				"bigfund inputs (100) do not equal outputs (101)",
 				func(b *types.Block) {
 					txn := &b.Transactions[0]
-					txn.SiafundOutputs[0].Value++
+					txn.BigfundOutputs[0].Value++
 				},
 			},
 			{
-				"siafund inputs (100) do not equal outputs (99)",
+				"bigfund inputs (100) do not equal outputs (99)",
 				func(b *types.Block) {
 					txn := &b.Transactions[0]
-					txn.SiafundOutputs[0].Value--
+					txn.BigfundOutputs[0].Value--
 				},
 			},
 			{
@@ -535,11 +535,11 @@ func TestValidateBlock(t *testing.T) {
 				},
 			},
 			{
-				fmt.Sprintf("transaction spends siafund input %v more than once", giftTxn.SiafundOutputID(0)),
+				fmt.Sprintf("transaction spends bigfund input %v more than once", giftTxn.BigfundOutputID(0)),
 				func(b *types.Block) {
 					txn := &b.Transactions[0]
-					txn.SiafundInputs = append(txn.SiafundInputs, txn.SiafundInputs[0])
-					txn.SiafundOutputs[0].Value += giftAmountSF
+					txn.BigfundInputs = append(txn.BigfundInputs, txn.BigfundInputs[0])
+					txn.BigfundOutputs[0].Value += giftAmountBF
 				},
 			},
 			{
@@ -550,10 +550,10 @@ func TestValidateBlock(t *testing.T) {
 				},
 			},
 			{
-				"siafund input 0 claims incorrect unlock conditions",
+				"bigfund input 0 claims incorrect unlock conditions",
 				func(b *types.Block) {
 					txn := &b.Transactions[0]
-					txn.SiafundInputs[0].UnlockConditions.PublicKeys[0].Key[0] ^= 255
+					txn.BigfundInputs[0].UnlockConditions.PublicKeys[0].Key[0] ^= 255
 				},
 			},
 			{
@@ -792,7 +792,7 @@ func TestValidateBlock(t *testing.T) {
 				},
 			},
 			{
-				"siafund input with missing signature",
+				"bigfund input with missing signature",
 				func(b *types.Block) {
 					txn := &b.Transactions[0]
 					txn.Signatures = []types.TransactionSignature{txn.Signatures[0]}
@@ -833,8 +833,8 @@ func TestValidateBlock(t *testing.T) {
 					txn.Signatures[0].CoveredFields.WholeTransaction = false
 					txn.Signatures[0].CoveredFields.BigFileInputs = []uint64{0}
 					txn.Signatures[0].CoveredFields.BigFileOutputs = []uint64{0}
-					txn.Signatures[0].CoveredFields.SiafundInputs = []uint64{0}
-					txn.Signatures[0].CoveredFields.SiafundOutputs = []uint64{0}
+					txn.Signatures[0].CoveredFields.BigfundInputs = []uint64{0}
+					txn.Signatures[0].CoveredFields.BigfundOutputs = []uint64{0}
 					txn.Signatures[0].CoveredFields.FileContracts = []uint64{0}
 					txn.Signatures[0].CoveredFields.FileContractRevisions = []uint64{0}
 				},
@@ -855,12 +855,12 @@ func TestValidateBlock(t *testing.T) {
 	}
 }
 
-func updateProofs(au ApplyUpdate, biges []types.BigFileElement, sfes []types.SiafundElement, fces []types.V2FileContractElement, cies []types.ChainIndexElement) {
+func updateProofs(au ApplyUpdate, biges []types.BigFileElement, bfes []types.BigfundElement, fces []types.V2FileContractElement, cies []types.ChainIndexElement) {
 	for i := range biges {
 		au.UpdateElementProof(&biges[i].StateElement)
 	}
-	for i := range sfes {
-		au.UpdateElementProof(&sfes[i].StateElement)
+	for i := range bfes {
+		au.UpdateElementProof(&bfes[i].StateElement)
 	}
 	for i := range fces {
 		au.UpdateElementProof(&fces[i].StateElement)
@@ -894,8 +894,8 @@ func TestValidateV2Block(t *testing.T) {
 		for i := range txn.BigFileInputs {
 			txn.BigFileInputs[i].SatisfiedPolicy.Signatures = []types.Signature{giftPrivateKey.SignHash(cs.InputSigHash(*txn))}
 		}
-		for i := range txn.SiafundInputs {
-			txn.SiafundInputs[i].SatisfiedPolicy.Signatures = []types.Signature{giftPrivateKey.SignHash(cs.InputSigHash(*txn))}
+		for i := range txn.BigfundInputs {
+			txn.BigfundInputs[i].SatisfiedPolicy.Signatures = []types.Signature{giftPrivateKey.SignHash(cs.InputSigHash(*txn))}
 		}
 		for i := range txn.FileContracts {
 			txn.FileContracts[i].RenterSignature = renterPrivateKey.SignHash(cs.ContractSigHash(txn.FileContracts[i]))
@@ -916,7 +916,7 @@ func TestValidateV2Block(t *testing.T) {
 	}
 
 	giftAmountBIG := types.BigFiles(100)
-	giftAmountSF := uint64(100)
+	giftAmountBF := uint64(100)
 	v1GiftFC := prepareContractFormation(renterPublicKey, hostPublicKey, types.BigFiles(1), types.BigFiles(1), 100, 100, types.VoidAddress)
 	v1GiftFC.Filesize = 65
 	v1GiftFC.FileMerkleRoot = blake2b.SumPair((State{}).StorageProofLeafHash([]byte{1}), (State{}).StorageProofLeafHash([]byte{2}))
@@ -940,8 +940,8 @@ func TestValidateV2Block(t *testing.T) {
 			{Address: giftAddress, Value: giftAmountBIG},
 			{Address: giftAddress, Value: contractCost},
 		},
-		SiafundOutputs: []types.SiafundOutput{
-			{Address: giftAddress, Value: giftAmountSF},
+		BigfundOutputs: []types.BigfundOutput{
+			{Address: giftAddress, Value: giftAmountBF},
 		},
 		FileContracts: []types.V2FileContract{v2GiftFC},
 	}
@@ -957,9 +957,9 @@ func TestValidateV2Block(t *testing.T) {
 	for i := range biges {
 		biges[i] = au.BigFileElementDiffs()[i].BigFileElement.Copy()
 	}
-	sfes := make([]types.SiafundElement, len(au.SiafundElementDiffs()))
-	for i := range sfes {
-		sfes[i] = au.SiafundElementDiffs()[i].SiafundElement.Copy()
+	bfes := make([]types.BigfundElement, len(au.BigfundElementDiffs()))
+	for i := range bfes {
+		bfes[i] = au.BigfundElementDiffs()[i].BigfundElement.Copy()
 	}
 	fces := make([]types.V2FileContractElement, len(au.V2FileContractElementDiffs()))
 	for i := range fces {
@@ -985,17 +985,17 @@ func TestValidateV2Block(t *testing.T) {
 					Parent:          biges[0].Copy(),
 					SatisfiedPolicy: types.SatisfiedPolicy{Policy: giftPolicy},
 				}},
-				SiafundInputs: []types.V2SiafundInput{{
-					Parent:          sfes[0].Copy(),
+				BigfundInputs: []types.V2BigfundInput{{
+					Parent:          bfes[0].Copy(),
 					ClaimAddress:    types.VoidAddress,
 					SatisfiedPolicy: types.SatisfiedPolicy{Policy: giftPolicy},
 				}},
 				BigFileOutputs: []types.BigFileOutput{
 					{Value: giftAmountBIG.Sub(minerFee).Sub(contractCost), Address: giftAddress},
 				},
-				SiafundOutputs: []types.SiafundOutput{
-					{Value: giftAmountSF / 2, Address: giftAddress},
-					{Value: giftAmountSF / 2, Address: types.VoidAddress},
+				BigfundOutputs: []types.BigfundOutput{
+					{Value: giftAmountBF / 2, Address: giftAddress},
+					{Value: giftAmountBF / 2, Address: types.VoidAddress},
 				},
 				FileContracts: []types.V2FileContract{fc},
 				FileContractRevisions: []types.V2FileContractRevision{
@@ -1099,13 +1099,13 @@ func TestValidateV2Block(t *testing.T) {
 				},
 			},
 			{
-				"siafund output 0 has zero value",
+				"bigfund output 0 has zero value",
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
-					for i := range txn.SiafundOutputs {
-						txn.SiafundOutputs[i].Value = 0
+					for i := range txn.BigfundOutputs {
+						txn.BigfundOutputs[i].Value = 0
 					}
-					txn.SiafundInputs = nil
+					txn.BigfundInputs = nil
 				},
 			},
 			{
@@ -1137,17 +1137,17 @@ func TestValidateV2Block(t *testing.T) {
 				},
 			},
 			{
-				"siafund inputs (100 SF) do not equal outputs",
+				"bigfund inputs (100 BF) do not equal outputs",
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
-					txn.SiafundOutputs[0].Value++
+					txn.BigfundOutputs[0].Value++
 				},
 			},
 			{
-				"siafund inputs (100 SF) do not equal outputs",
+				"bigfund inputs (100 BF) do not equal outputs",
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
-					txn.SiafundOutputs[0].Value--
+					txn.BigfundOutputs[0].Value--
 				},
 			},
 			{
@@ -1158,10 +1158,10 @@ func TestValidateV2Block(t *testing.T) {
 				},
 			},
 			{
-				"siafund input 1 double-spends parent output",
+				"bigfund input 1 double-spends parent output",
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
-					txn.SiafundInputs = append(txn.SiafundInputs, txn.SiafundInputs[0])
+					txn.BigfundInputs = append(txn.BigfundInputs, txn.BigfundInputs[0])
 				},
 			},
 			{
@@ -1172,10 +1172,10 @@ func TestValidateV2Block(t *testing.T) {
 				},
 			},
 			{
-				"siafund input 0 claims incorrect policy",
+				"bigfund input 0 claims incorrect policy",
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
-					txn.SiafundInputs[0].SatisfiedPolicy.Policy = types.AnyoneCanSpend()
+					txn.BigfundInputs[0].SatisfiedPolicy.Policy = types.AnyoneCanSpend()
 				},
 			},
 			{
@@ -1292,10 +1292,10 @@ func TestValidateV2Block(t *testing.T) {
 				},
 			},
 			{
-				fmt.Sprintf("siafund input 0 spends output (%v) not present in the accumulator", sfes[0].ID),
+				fmt.Sprintf("bigfund input 0 spends output (%v) not present in the accumulator", bfes[0].ID),
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
-					txn.SiafundInputs[0].Parent.StateElement.LeafIndex ^= 1
+					txn.BigfundInputs[0].Parent.StateElement.LeafIndex ^= 1
 				},
 			},
 			{
@@ -1306,10 +1306,10 @@ func TestValidateV2Block(t *testing.T) {
 				},
 			},
 			{
-				"siafund input 0 failed to satisfy spend policy: superfluous preimage(s)",
+				"bigfund input 0 failed to satisfy spend policy: superfluous preimage(s)",
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
-					txn.SiafundInputs[0].SatisfiedPolicy.Preimages = [][32]byte{{1}}
+					txn.BigfundInputs[0].SatisfiedPolicy.Preimages = [][32]byte{{1}}
 				},
 			},
 			{
@@ -1358,15 +1358,15 @@ func TestValidateV2Block(t *testing.T) {
 	cs, testAU := ApplyBlock(cs, validBlock, db.supplementTipBlock(validBlock), time.Now())
 	checkApplyUpdate(t, cs, testAU)
 	db.applyBlock(testAU)
-	updateProofs(testAU, biges, sfes, fces, cies)
+	updateProofs(testAU, biges, bfes, fces, cies)
 
 	testBiges := make([]types.BigFileElement, len(testAU.BigFileElementDiffs()))
 	for i := range testBiges {
 		testBiges[i] = testAU.BigFileElementDiffs()[i].BigFileElement.Copy()
 	}
-	testSfes := make([]types.SiafundElement, len(testAU.SiafundElementDiffs()))
+	testSfes := make([]types.BigfundElement, len(testAU.BigfundElementDiffs()))
 	for i := range testSfes {
-		testSfes[i] = testAU.SiafundElementDiffs()[i].SiafundElement.Copy()
+		testSfes[i] = testAU.BigfundElementDiffs()[i].BigfundElement.Copy()
 	}
 	testFces := make([]types.V2FileContractElement, len(testAU.V2FileContractElementDiffs()))
 	for i := range testFces {
@@ -1397,7 +1397,7 @@ func TestValidateV2Block(t *testing.T) {
 		cs, au = ApplyBlock(cs, b, db.supplementTipBlock(validBlock), time.Now())
 		checkApplyUpdate(t, cs, au)
 		db.applyBlock(au)
-		updateProofs(au, biges, sfes, fces, cies)
+		updateProofs(au, biges, bfes, fces, cies)
 		updateProofs(au, testBiges, testSfes, testFces, nil)
 		cies = append(cies, au.ChainIndexElement())
 
@@ -1461,10 +1461,10 @@ func TestValidateV2Block(t *testing.T) {
 				},
 			},
 			{
-				"double spend of non-parent siafund output",
+				"double spend of non-parent bigfund output",
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
-					txn.SiafundInputs = append(txn.SiafundInputs, types.V2SiafundInput{
+					txn.BigfundInputs = append(txn.BigfundInputs, types.V2BigfundInput{
 						Parent:          testSfes[0].Copy(),
 						SatisfiedPolicy: types.SatisfiedPolicy{Policy: giftPolicy},
 					})

@@ -125,8 +125,8 @@ func validateCurrencyOverflow(ms *MidState, txn types.Transaction) error {
 	for _, bigo := range txn.BigFileOutputs {
 		add(bigo.Value)
 	}
-	for _, sfo := range txn.SiafundOutputs {
-		overflow = overflow || sfo.Value > ms.base.SiafundCount()
+	for _, bfo := range txn.BigfundOutputs {
+		overflow = overflow || bfo.Value > ms.base.BigfundCount()
 	}
 	for _, fc := range txn.FileContracts {
 		add(fc.Payout)
@@ -161,8 +161,8 @@ func validateMinimumValues(_ *MidState, txn types.Transaction) error {
 	for _, fc := range txn.FileContracts {
 		zero = zero || fc.Payout.IsZero()
 	}
-	for _, sfo := range txn.SiafundOutputs {
-		zero = zero || sfo.Value == 0
+	for _, bfo := range txn.BigfundOutputs {
+		zero = zero || bfo.Value == 0
 	}
 	for _, fee := range txn.MinerFees {
 		zero = zero || fee.IsZero()
@@ -207,32 +207,32 @@ func validateBigFiles(ms *MidState, txn types.Transaction, ts V1TransactionSuppl
 	return nil
 }
 
-func validateSiafunds(ms *MidState, txn types.Transaction, ts V1TransactionSupplement) error {
+func validateBigfunds(ms *MidState, txn types.Transaction, ts V1TransactionSupplement) error {
 	var inputSum uint64
-	for i, sfi := range txn.SiafundInputs {
-		if sfi.UnlockConditions.Timelock > ms.base.childHeight() {
-			return fmt.Errorf("siafund input %v has timelocked parent", i)
-		} else if txid, ok := ms.spent(types.Hash256(sfi.ParentID)); ok {
-			return fmt.Errorf("siafund input %v double-spends parent output (previously spent in %v)", i, txid)
+	for i, bfi := range txn.BigfundInputs {
+		if bfi.UnlockConditions.Timelock > ms.base.childHeight() {
+			return fmt.Errorf("bigfund input %v has timelocked parent", i)
+		} else if txid, ok := ms.spent(types.Hash256(bfi.ParentID)); ok {
+			return fmt.Errorf("bigfund input %v double-spends parent output (previously spent in %v)", i, txid)
 		}
-		parent, ok := ms.siafundElement(ts, sfi.ParentID)
+		parent, ok := ms.bigfundElement(ts, bfi.ParentID)
 		if !ok {
-			return fmt.Errorf("siafund input %v spends nonexistent siafund output %v", i, sfi.ParentID)
-		} else if sfi.UnlockConditions.UnlockHash() != parent.SiafundOutput.Address &&
-			// override old developer siafund address
+			return fmt.Errorf("bigfund input %v spends nonexistent bigfund output %v", i, bfi.ParentID)
+		} else if bfi.UnlockConditions.UnlockHash() != parent.BigfundOutput.Address &&
+			// override old developer bigfund address
 			!(ms.base.childHeight() >= ms.base.Network.HardforkDevAddr.Height &&
-				parent.SiafundOutput.Address == ms.base.Network.HardforkDevAddr.OldAddress &&
-				sfi.UnlockConditions.UnlockHash() == ms.base.Network.HardforkDevAddr.NewAddress) {
-			return fmt.Errorf("siafund input %v claims incorrect unlock conditions for siafund output %v", i, sfi.ParentID)
+				parent.BigfundOutput.Address == ms.base.Network.HardforkDevAddr.OldAddress &&
+				bfi.UnlockConditions.UnlockHash() == ms.base.Network.HardforkDevAddr.NewAddress) {
+			return fmt.Errorf("bigfund input %v claims incorrect unlock conditions for bigfund output %v", i, bfi.ParentID)
 		}
-		inputSum += parent.SiafundOutput.Value
+		inputSum += parent.BigfundOutput.Value
 	}
 	var outputSum uint64
-	for _, out := range txn.SiafundOutputs {
+	for _, out := range txn.BigfundOutputs {
 		outputSum += out.Value
 	}
 	if inputSum != outputSum {
-		return fmt.Errorf("siafund inputs (%v) do not equal outputs (%v)", inputSum, outputSum)
+		return fmt.Errorf("bigfund inputs (%v) do not equal outputs (%v)", inputSum, outputSum)
 	}
 	return nil
 }
@@ -293,10 +293,10 @@ func validateFileContracts(ms *MidState, txn types.Transaction, ts V1Transaction
 
 	// Storage proofs are height-sensitive, and thus can be invalidated by
 	// shallow reorgs; to minimize disruption, we require that transactions
-	// containing a storage proof do not contain bigfile outputs, siafund
+	// containing a storage proof do not contain bigfile outputs, bigfund
 	// outputs, new file contracts, or file contract revisions.
 	if len(txn.StorageProofs) > 0 &&
-		(len(txn.BigFileOutputs) > 0 || len(txn.SiafundOutputs) > 0 ||
+		(len(txn.BigFileOutputs) > 0 || len(txn.BigfundOutputs) > 0 ||
 			len(txn.FileContracts) > 0 || len(txn.FileContractRevisions) > 0) {
 		return errors.New("transaction contains both a storage proof and other outputs")
 	}
@@ -435,9 +435,9 @@ func validateSignatures(ms *MidState, txn types.Transaction) error {
 			return fmt.Errorf("transaction spends bigfile input %v more than once", bigi.ParentID)
 		}
 	}
-	for _, sfi := range txn.SiafundInputs {
-		if !addEntry(types.Hash256(sfi.ParentID), sfi.UnlockConditions) {
-			return fmt.Errorf("transaction spends siafund input %v more than once", sfi.ParentID)
+	for _, bfi := range txn.BigfundInputs {
+		if !addEntry(types.Hash256(bfi.ParentID), bfi.UnlockConditions) {
+			return fmt.Errorf("transaction spends bigfund input %v more than once", bfi.ParentID)
 		}
 	}
 	for _, fcr := range txn.FileContractRevisions {
@@ -503,7 +503,7 @@ func ValidateTransaction(ms *MidState, txn types.Transaction, ts V1TransactionSu
 		return err
 	} else if err := validateBigFiles(ms, txn, ts); err != nil {
 		return err
-	} else if err := validateSiafunds(ms, txn, ts); err != nil {
+	} else if err := validateBigfunds(ms, txn, ts); err != nil {
 		return err
 	} else if err := validateFileContracts(ms, txn, ts); err != nil {
 		return err
@@ -538,8 +538,8 @@ func validateV2CurrencyOverflow(ms *MidState, txn types.V2Transaction) error {
 	for _, bigo := range txn.BigFileOutputs {
 		add(bigo.Value)
 	}
-	for _, sfo := range txn.SiafundOutputs {
-		overflow = overflow || sfo.Value > ms.base.SiafundCount()
+	for _, bfo := range txn.BigfundOutputs {
+		overflow = overflow || bfo.Value > ms.base.BigfundCount()
 	}
 	for _, fc := range txn.FileContracts {
 		addContract(fc)
@@ -627,50 +627,50 @@ func validateV2BigFiles(ms *MidState, txn types.V2Transaction) error {
 	return nil
 }
 
-func validateV2Siafunds(ms *MidState, txn types.V2Transaction) error {
+func validateV2Bigfunds(ms *MidState, txn types.V2Transaction) error {
 	sigHash := ms.base.InputSigHash(txn)
-	spent := make(map[types.SiafundOutputID]int)
-	for i, sfi := range txn.SiafundInputs {
-		if txid, ok := ms.spent(sfi.Parent.ID); ok {
-			return fmt.Errorf("siafund input %v double-spends parent output (previously spent in %v)", i, txid)
-		} else if j, ok := spent[sfi.Parent.ID]; ok {
-			return fmt.Errorf("siafund input %v double-spends parent output (previously spent by input %v)", i, j)
+	spent := make(map[types.BigfundOutputID]int)
+	for i, bfi := range txn.BigfundInputs {
+		if txid, ok := ms.spent(bfi.Parent.ID); ok {
+			return fmt.Errorf("bigfund input %v double-spends parent output (previously spent in %v)", i, txid)
+		} else if j, ok := spent[bfi.Parent.ID]; ok {
+			return fmt.Errorf("bigfund input %v double-spends parent output (previously spent by input %v)", i, j)
 		}
-		spent[sfi.Parent.ID] = i
+		spent[bfi.Parent.ID] = i
 
 		// check accumulator
-		if sfi.Parent.StateElement.LeafIndex == types.UnassignedLeafIndex {
-			if i, ok := ms.elements[sfi.Parent.ID]; !ok || !ms.sfes[i].Created {
-				return fmt.Errorf("siafund input %v spends nonexistent ephemeral output %v", i, sfi.Parent.ID)
+		if bfi.Parent.StateElement.LeafIndex == types.UnassignedLeafIndex {
+			if i, ok := ms.elements[bfi.Parent.ID]; !ok || !ms.bfes[i].Created {
+				return fmt.Errorf("bigfund input %v spends nonexistent ephemeral output %v", i, bfi.Parent.ID)
 			}
-		} else if !ms.base.Elements.containsUnspentSiafundElement(sfi.Parent.Share()) {
-			if ms.base.Elements.containsSpentSiafundElement(sfi.Parent.Share()) {
-				return fmt.Errorf("siafund input %v double-spends output %v", i, sfi.Parent.ID)
+		} else if !ms.base.Elements.containsUnspentBigfundElement(bfi.Parent.Share()) {
+			if ms.base.Elements.containsSpentBigfundElement(bfi.Parent.Share()) {
+				return fmt.Errorf("bigfund input %v double-spends output %v", i, bfi.Parent.ID)
 			}
-			return fmt.Errorf("siafund input %v spends output (%v) not present in the accumulator", i, sfi.Parent.ID)
+			return fmt.Errorf("bigfund input %v spends output (%v) not present in the accumulator", i, bfi.Parent.ID)
 		}
 
 		// check spend policy
-		sp := sfi.SatisfiedPolicy
-		if sp.Policy.Address() != sfi.Parent.SiafundOutput.Address {
-			return fmt.Errorf("siafund input %v claims incorrect policy for parent address", i)
+		sp := bfi.SatisfiedPolicy
+		if sp.Policy.Address() != bfi.Parent.BigfundOutput.Address {
+			return fmt.Errorf("bigfund input %v claims incorrect policy for parent address", i)
 		} else if err := sp.Policy.Verify(ms.base.Index.Height, ms.base.medianTimestamp(), sigHash, sp.Signatures, sp.Preimages); err != nil {
-			return fmt.Errorf("siafund input %v failed to satisfy spend policy: %w", i, err)
+			return fmt.Errorf("bigfund input %v failed to satisfy spend policy: %w", i, err)
 		}
 	}
 
 	var inputSum, outputSum uint64
-	for _, in := range txn.SiafundInputs {
-		inputSum += in.Parent.SiafundOutput.Value
+	for _, in := range txn.BigfundInputs {
+		inputSum += in.Parent.BigfundOutput.Value
 	}
-	for i, out := range txn.SiafundOutputs {
+	for i, out := range txn.BigfundOutputs {
 		if out.Value == 0 {
-			return fmt.Errorf("siafund output %v has zero value", i)
+			return fmt.Errorf("bigfund output %v has zero value", i)
 		}
 		outputSum += out.Value
 	}
 	if inputSum != outputSum {
-		return fmt.Errorf("siafund inputs (%d SF) do not equal outputs (%d SF)", inputSum, outputSum)
+		return fmt.Errorf("bigfund inputs (%d BF) do not equal outputs (%d BF)", inputSum, outputSum)
 	}
 	return nil
 }
@@ -870,7 +870,7 @@ func ValidateV2Transaction(ms *MidState, txn types.V2Transaction) error {
 		return fmt.Errorf("transaction exceeds maximum block weight (%v > %v)", weight, ms.base.MaxBlockWeight())
 	} else if err := validateV2BigFiles(ms, txn); err != nil {
 		return err
-	} else if err := validateV2Siafunds(ms, txn); err != nil {
+	} else if err := validateV2Bigfunds(ms, txn); err != nil {
 		return err
 	} else if err := validateV2FileContracts(ms, txn); err != nil {
 		return err
@@ -892,9 +892,9 @@ func validateSupplement(s State, b types.Block, bs V1BlockSupplement) error {
 				return fmt.Errorf("bigfile element %v is not present in the accumulator", bige.ID)
 			}
 		}
-		for _, sfe := range txn.SiafundInputs {
-			if !s.Elements.containsUnspentSiafundElement(sfe.Share()) {
-				return fmt.Errorf("siafund element %v is not present in the accumulator", sfe.ID)
+		for _, bfe := range txn.BigfundInputs {
+			if !s.Elements.containsUnspentBigfundElement(bfe.Share()) {
+				return fmt.Errorf("bigfund element %v is not present in the accumulator", bfe.ID)
 			}
 		}
 		for _, fce := range txn.RevisedFileContracts {
