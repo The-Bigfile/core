@@ -257,11 +257,11 @@ func (s State) AncestorDepth() uint64 {
 }
 
 // FoundationSubsidy returns the Foundation subsidy output for the child block.
-func (s State) FoundationSubsidy() (sco types.BigFileOutput, exists bool) {
+func (s State) FoundationSubsidy() (bigo types.BigFileOutput, exists bool) {
 	if s.FoundationSubsidyAddress == types.VoidAddress {
 		return types.BigFileOutput{}, false
 	}
-	sco.Address = s.FoundationSubsidyAddress
+	bigo.Address = s.FoundationSubsidyAddress
 	subsidyPerBlock := types.BigFiles(30000)
 	blocksPerYear := uint64(365 * 24 * time.Hour / s.BlockInterval())
 	blocksPerMonth := blocksPerYear / 12
@@ -269,11 +269,11 @@ func (s State) FoundationSubsidy() (sco types.BigFileOutput, exists bool) {
 	if s.childHeight() < hardforkHeight || (s.childHeight()-hardforkHeight)%blocksPerMonth != 0 {
 		return types.BigFileOutput{}, false
 	} else if s.childHeight() == hardforkHeight {
-		sco.Value = subsidyPerBlock.Mul64(blocksPerYear)
+		bigo.Value = subsidyPerBlock.Mul64(blocksPerYear)
 	} else {
-		sco.Value = subsidyPerBlock.Mul64(blocksPerMonth)
+		bigo.Value = subsidyPerBlock.Mul64(blocksPerMonth)
 	}
-	return sco, true
+	return bigo, true
 }
 
 // NonceFactor is the factor by which all block nonces must be divisible.
@@ -309,12 +309,12 @@ func (s State) TransactionWeight(txn types.Transaction) uint64 {
 func (s State) V2TransactionWeight(txn types.V2Transaction) uint64 {
 	var wc writeCounter
 	e := types.NewEncoder(&wc)
-	for _, sci := range txn.BigFileInputs {
-		sci.Parent.StateElement.MerkleProof = nil
-		sci.EncodeTo(e)
+	for _, bigi := range txn.BigFileInputs {
+		bigi.Parent.StateElement.MerkleProof = nil
+		bigi.EncodeTo(e)
 	}
-	for _, sco := range txn.BigFileOutputs {
-		types.V2BigFileOutput(sco).EncodeTo(e)
+	for _, bigo := range txn.BigFileOutputs {
+		types.V2BigFileOutput(bigo).EncodeTo(e)
 	}
 	for _, sfi := range txn.SiafundInputs {
 		sfi.Parent.StateElement.MerkleProof = nil
@@ -667,7 +667,7 @@ type MidState struct {
 	foundationManagement types.Address
 
 	// elements created/updated by block
-	sces   []BigFileElementDiff
+	biges  []BigFileElementDiff
 	sfes   []SiafundElementDiff
 	fces   []FileContractElementDiff
 	v2fces []V2FileContractElementDiff
@@ -677,11 +677,11 @@ type MidState struct {
 
 func (ms *MidState) bigfileElement(ts V1TransactionSupplement, id types.BigFileOutputID) (types.BigFileElement, bool) {
 	if i, ok := ms.elements[id]; ok {
-		return ms.sces[i].BigFileElement, true
+		return ms.biges[i].BigFileElement, true
 	}
-	for _, sce := range ts.BigFileInputs {
-		if sce.ID == id {
-			return sce, true
+	for _, bige := range ts.BigFileInputs {
+		if bige.ID == id {
+			return bige, true
 		}
 	}
 	return types.BigFileElement{}, false

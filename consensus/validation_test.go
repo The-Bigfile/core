@@ -43,7 +43,7 @@ func testnet() (*Network, types.Block) {
 }
 
 type consensusDB struct {
-	sces     map[types.BigFileOutputID]types.BigFileElement
+	biges    map[types.BigFileOutputID]types.BigFileElement
 	sfes     map[types.SiafundOutputID]types.SiafundElement
 	fces     map[types.FileContractID]types.FileContractElement
 	v2fces   map[types.FileContractID]types.V2FileContractElement
@@ -51,9 +51,9 @@ type consensusDB struct {
 }
 
 func (db *consensusDB) applyBlock(au ApplyUpdate) {
-	for id, sce := range db.sces {
-		au.UpdateElementProof(&sce.StateElement)
-		db.sces[id] = sce.Move()
+	for id, bige := range db.biges {
+		au.UpdateElementProof(&bige.StateElement)
+		db.biges[id] = bige.Move()
 	}
 	for id, sfe := range db.sfes {
 		au.UpdateElementProof(&sfe.StateElement)
@@ -67,11 +67,11 @@ func (db *consensusDB) applyBlock(au ApplyUpdate) {
 		au.UpdateElementProof(&fce.StateElement)
 		db.v2fces[id] = fce.Move()
 	}
-	for _, sce := range au.sces {
-		if sce.Spent {
-			delete(db.sces, sce.BigFileElement.ID)
+	for _, bige := range au.biges {
+		if bige.Spent {
+			delete(db.biges, bige.BigFileElement.ID)
 		} else {
-			db.sces[sce.BigFileElement.ID] = sce.BigFileElement.Copy()
+			db.biges[bige.BigFileElement.ID] = bige.BigFileElement.Copy()
 		}
 	}
 	for _, sfe := range au.sfes {
@@ -105,11 +105,11 @@ func (db *consensusDB) applyBlock(au ApplyUpdate) {
 }
 
 func (db *consensusDB) revertBlock(ru RevertUpdate) {
-	for _, sce := range ru.sces {
-		if sce.Spent {
-			db.sces[sce.BigFileElement.ID] = sce.BigFileElement.Copy()
+	for _, bige := range ru.biges {
+		if bige.Spent {
+			db.biges[bige.BigFileElement.ID] = bige.BigFileElement.Copy()
 		} else {
-			delete(db.sces, sce.BigFileElement.ID)
+			delete(db.biges, bige.BigFileElement.ID)
 		}
 	}
 	for _, sfe := range ru.sfes {
@@ -138,9 +138,9 @@ func (db *consensusDB) revertBlock(ru RevertUpdate) {
 		}
 	}
 
-	for id, sce := range db.sces {
-		ru.UpdateElementProof(&sce.StateElement)
-		db.sces[id] = sce.Copy()
+	for id, bige := range db.biges {
+		ru.UpdateElementProof(&bige.StateElement)
+		db.biges[id] = bige.Copy()
 	}
 	for id, sfe := range db.sfes {
 		ru.UpdateElementProof(&sfe.StateElement)
@@ -162,9 +162,9 @@ func (db *consensusDB) supplementTipBlock(b types.Block) (bs V1BlockSupplement) 
 	}
 	for i, txn := range b.Transactions {
 		ts := &bs.Transactions[i]
-		for _, sci := range txn.BigFileInputs {
-			if sce, ok := db.sces[sci.ParentID]; ok {
-				ts.BigFileInputs = append(ts.BigFileInputs, sce.Copy())
+		for _, bigi := range txn.BigFileInputs {
+			if bige, ok := db.biges[bigi.ParentID]; ok {
+				ts.BigFileInputs = append(ts.BigFileInputs, bige.Copy())
 			}
 		}
 		for _, sfi := range txn.SiafundInputs {
@@ -195,7 +195,7 @@ func (db *consensusDB) ancestorTimestamp(types.BlockID) time.Time {
 
 func newConsensusDB(n *Network, genesisBlock types.Block) (*consensusDB, State) {
 	db := &consensusDB{
-		sces:   make(map[types.BigFileOutputID]types.BigFileElement),
+		biges:  make(map[types.BigFileOutputID]types.BigFileElement),
 		sfes:   make(map[types.SiafundOutputID]types.SiafundElement),
 		fces:   make(map[types.FileContractID]types.FileContractElement),
 		v2fces: make(map[types.FileContractID]types.V2FileContractElement),
@@ -855,9 +855,9 @@ func TestValidateBlock(t *testing.T) {
 	}
 }
 
-func updateProofs(au ApplyUpdate, sces []types.BigFileElement, sfes []types.SiafundElement, fces []types.V2FileContractElement, cies []types.ChainIndexElement) {
-	for i := range sces {
-		au.UpdateElementProof(&sces[i].StateElement)
+func updateProofs(au ApplyUpdate, biges []types.BigFileElement, sfes []types.SiafundElement, fces []types.V2FileContractElement, cies []types.ChainIndexElement) {
+	for i := range biges {
+		au.UpdateElementProof(&biges[i].StateElement)
 	}
 	for i := range sfes {
 		au.UpdateElementProof(&sfes[i].StateElement)
@@ -953,9 +953,9 @@ func TestValidateV2Block(t *testing.T) {
 
 	cs, au := ApplyBlock(n.GenesisState(), genesisBlock, V1BlockSupplement{}, time.Time{})
 	checkApplyUpdate(t, cs, au)
-	sces := make([]types.BigFileElement, len(au.BigFileElementDiffs()))
-	for i := range sces {
-		sces[i] = au.BigFileElementDiffs()[i].BigFileElement.Copy()
+	biges := make([]types.BigFileElement, len(au.BigFileElementDiffs()))
+	for i := range biges {
+		biges[i] = au.BigFileElementDiffs()[i].BigFileElement.Copy()
 	}
 	sfes := make([]types.SiafundElement, len(au.SiafundElementDiffs()))
 	for i := range sfes {
@@ -982,7 +982,7 @@ func TestValidateV2Block(t *testing.T) {
 			Height: 1,
 			Transactions: []types.V2Transaction{{
 				BigFileInputs: []types.V2BigFileInput{{
-					Parent:          sces[0].Copy(),
+					Parent:          biges[0].Copy(),
 					SatisfiedPolicy: types.SatisfiedPolicy{Policy: giftPolicy},
 				}},
 				SiafundInputs: []types.V2SiafundInput{{
@@ -1285,7 +1285,7 @@ func TestValidateV2Block(t *testing.T) {
 				},
 			},
 			{
-				fmt.Sprintf("bigfile input 0 spends output (%v) not present in the accumulator", sces[0].ID),
+				fmt.Sprintf("bigfile input 0 spends output (%v) not present in the accumulator", biges[0].ID),
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
 					txn.BigFileInputs[0].Parent.StateElement.LeafIndex ^= 1
@@ -1358,11 +1358,11 @@ func TestValidateV2Block(t *testing.T) {
 	cs, testAU := ApplyBlock(cs, validBlock, db.supplementTipBlock(validBlock), time.Now())
 	checkApplyUpdate(t, cs, testAU)
 	db.applyBlock(testAU)
-	updateProofs(testAU, sces, sfes, fces, cies)
+	updateProofs(testAU, biges, sfes, fces, cies)
 
-	testSces := make([]types.BigFileElement, len(testAU.BigFileElementDiffs()))
-	for i := range testSces {
-		testSces[i] = testAU.BigFileElementDiffs()[i].BigFileElement.Copy()
+	testBiges := make([]types.BigFileElement, len(testAU.BigFileElementDiffs()))
+	for i := range testBiges {
+		testBiges[i] = testAU.BigFileElementDiffs()[i].BigFileElement.Copy()
 	}
 	testSfes := make([]types.SiafundElement, len(testAU.SiafundElementDiffs()))
 	for i := range testSfes {
@@ -1397,8 +1397,8 @@ func TestValidateV2Block(t *testing.T) {
 		cs, au = ApplyBlock(cs, b, db.supplementTipBlock(validBlock), time.Now())
 		checkApplyUpdate(t, cs, au)
 		db.applyBlock(au)
-		updateProofs(au, sces, sfes, fces, cies)
-		updateProofs(au, testSces, testSfes, testFces, nil)
+		updateProofs(au, biges, sfes, fces, cies)
+		updateProofs(au, testBiges, testSfes, testFces, nil)
 		cies = append(cies, au.ChainIndexElement())
 
 		blockID = b.ID()
@@ -1455,7 +1455,7 @@ func TestValidateV2Block(t *testing.T) {
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
 					txn.BigFileInputs = append(txn.BigFileInputs, types.V2BigFileInput{
-						Parent:          testSces[0].Copy(),
+						Parent:          testBiges[0].Copy(),
 						SatisfiedPolicy: types.SatisfiedPolicy{Policy: giftPolicy},
 					})
 				},
@@ -1509,7 +1509,7 @@ func TestValidateV2Block(t *testing.T) {
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
 					txn.BigFileInputs = []types.V2BigFileInput{{
-						Parent:          sces[1].Copy(),
+						Parent:          biges[1].Copy(),
 						SatisfiedPolicy: types.SatisfiedPolicy{Policy: giftPolicy},
 					}}
 
@@ -1528,7 +1528,7 @@ func TestValidateV2Block(t *testing.T) {
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
 					txn.BigFileInputs = []types.V2BigFileInput{{
-						Parent:          sces[1].Copy(),
+						Parent:          biges[1].Copy(),
 						SatisfiedPolicy: types.SatisfiedPolicy{Policy: giftPolicy},
 					}}
 
@@ -1598,17 +1598,17 @@ func TestV2ImmatureBigFileOutput(t *testing.T) {
 		var cau ApplyUpdate
 		cs, cau = ApplyBlock(cs, b, db.supplementTipBlock(b), db.ancestorTimestamp(b.ParentID))
 		checkApplyUpdate(t, cs, cau)
-		for _, sce := range cau.BigFileElementDiffs() {
-			if sce.Spent {
-				delete(utxos, sce.BigFileElement.ID)
-			} else if sce.BigFileElement.BigFileOutput.Address == addr {
-				utxos[sce.BigFileElement.ID] = sce.BigFileElement.Copy()
+		for _, bige := range cau.BigFileElementDiffs() {
+			if bige.Spent {
+				delete(utxos, bige.BigFileElement.ID)
+			} else if bige.BigFileElement.BigFileOutput.Address == addr {
+				utxos[bige.BigFileElement.ID] = bige.BigFileElement.Copy()
 			}
 		}
 
-		for id, sce := range utxos {
-			cau.UpdateElementProof(&sce.StateElement)
-			utxos[id] = sce.Move()
+		for id, bige := range utxos {
+			cau.UpdateElementProof(&bige.StateElement)
+			utxos[id] = bige.Move()
 		}
 
 		db.applyBlock(cau)
@@ -1624,18 +1624,18 @@ func TestV2ImmatureBigFileOutput(t *testing.T) {
 	}
 
 	// grab the one element
-	var sce types.BigFileElement
-	for _, sce = range utxos {
+	var bige types.BigFileElement
+	for _, bige = range utxos {
 		break
 	}
 
 	// construct a transaction using the immature miner payout utxo
 	txn := types.V2Transaction{
 		BigFileInputs: []types.V2BigFileInput{
-			{Parent: sce.Copy()},
+			{Parent: bige.Copy()},
 		},
 		BigFileOutputs: []types.BigFileOutput{
-			{Address: types.VoidAddress, Value: sce.BigFileOutput.Value},
+			{Address: types.VoidAddress, Value: bige.BigFileOutput.Value},
 		},
 	}
 	sigHash := cs.InputSigHash(txn)
@@ -1890,9 +1890,9 @@ func TestV2RenewalResolution(t *testing.T) {
 				fces[fce.V2FileContractElement.ID] = fce.V2FileContractElement.Copy()
 			}
 		}
-		for _, sce := range au.BigFileElementDiffs() {
-			if sce.BigFileElement.ID == genesisOutput.ID {
-				genesisOutput = sce.BigFileElement.Copy()
+		for _, bige := range au.BigFileElementDiffs() {
+			if bige.BigFileElement.ID == genesisOutput.ID {
+				genesisOutput = bige.BigFileElement.Copy()
 				break
 			}
 		}

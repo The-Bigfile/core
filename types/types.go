@@ -1050,16 +1050,16 @@ func (aid *AttestationID) UnmarshalText(b []byte) error {
 }
 
 // String implements fmt.Stringer.
-func (scoid BigFileOutputID) String() string { return hex.EncodeToString(scoid[:]) }
+func (bigoid BigFileOutputID) String() string { return hex.EncodeToString(bigoid[:]) }
 
 // MarshalText implements encoding.TextMarshaler.
-func (scoid BigFileOutputID) MarshalText() ([]byte, error) {
-	return []byte(hex.EncodeToString(scoid[:])), nil
+func (bigoid BigFileOutputID) MarshalText() ([]byte, error) {
+	return []byte(hex.EncodeToString(bigoid[:])), nil
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (scoid *BigFileOutputID) UnmarshalText(b []byte) error {
-	return unmarshalHex(scoid[:], b)
+func (bigoid *BigFileOutputID) UnmarshalText(b []byte) error {
+	return unmarshalHex(bigoid[:], b)
 }
 
 // String implements fmt.Stringer.
@@ -1269,9 +1269,9 @@ func (cie ChainIndexElement) Move() ChainIndexElement {
 
 // Move returns a shallow copy of the element. It must only be used when the
 // element's memory is not shared.
-func (sce BigFileElement) Move() BigFileElement {
-	sce.StateElement = sce.StateElement.Move()
-	return sce
+func (bige BigFileElement) Move() BigFileElement {
+	bige.StateElement = bige.StateElement.Move()
+	return bige
 }
 
 // Move returns a shallow copy of the element. It must only be used when the
@@ -1318,9 +1318,9 @@ func (cie ChainIndexElement) Share() ChainIndexElement {
 
 // Share returns a shallow copy of the element. It must be used whenever the
 // element's memory is intentionally aliased.
-func (sce BigFileElement) Share() BigFileElement {
-	sce.StateElement = sce.StateElement.Share()
-	return sce
+func (bige BigFileElement) Share() BigFileElement {
+	bige.StateElement = bige.StateElement.Share()
+	return bige
 }
 
 // Share returns a shallow copy of the element. It must be used whenever the
@@ -1368,9 +1368,9 @@ func (cie ChainIndexElement) Copy() ChainIndexElement {
 
 // Copy returns a deep copy of the element. It must be used whenever the
 // element's memory is copied.
-func (sce BigFileElement) Copy() BigFileElement {
-	sce.StateElement = sce.StateElement.Copy()
-	return sce
+func (bige BigFileElement) Copy() BigFileElement {
+	bige.StateElement = bige.StateElement.Copy()
+	return bige
 }
 
 // Copy returns a deep copy of the element. It must be used whenever the
