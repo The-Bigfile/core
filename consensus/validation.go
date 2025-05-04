@@ -122,8 +122,8 @@ func validateCurrencyOverflow(ms *MidState, txn types.Transaction) error {
 			sum, overflow = sum.AddWithOverflow(c)
 		}
 	}
-	for _, sco := range txn.BigFileOutputs {
-		add(sco.Value)
+	for _, bigo := range txn.BigFileOutputs {
+		add(bigo.Value)
 	}
 	for _, sfo := range txn.SiafundOutputs {
 		overflow = overflow || sfo.Value > ms.base.SiafundCount()
@@ -155,8 +155,8 @@ func validateCurrencyOverflow(ms *MidState, txn types.Transaction) error {
 
 func validateMinimumValues(_ *MidState, txn types.Transaction) error {
 	zero := false
-	for _, sco := range txn.BigFileOutputs {
-		zero = zero || sco.Value.IsZero()
+	for _, bigo := range txn.BigFileOutputs {
+		zero = zero || bigo.Value.IsZero()
 	}
 	for _, fc := range txn.FileContracts {
 		zero = zero || fc.Payout.IsZero()
@@ -175,17 +175,17 @@ func validateMinimumValues(_ *MidState, txn types.Transaction) error {
 
 func validateBigFiles(ms *MidState, txn types.Transaction, ts V1TransactionSupplement) error {
 	var inputSum types.Currency
-	for i, sci := range txn.BigFileInputs {
-		if sci.UnlockConditions.Timelock > ms.base.childHeight() {
+	for i, bigi := range txn.BigFileInputs {
+		if bigi.UnlockConditions.Timelock > ms.base.childHeight() {
 			return fmt.Errorf("bigfile input %v has timelocked parent", i)
-		} else if txid, ok := ms.spent(types.Hash256(sci.ParentID)); ok {
+		} else if txid, ok := ms.spent(types.Hash256(bigi.ParentID)); ok {
 			return fmt.Errorf("bigfile input %v double-spends parent output (previously spent in %v)", i, txid)
 		}
-		parent, ok := ms.bigfileElement(ts, sci.ParentID)
+		parent, ok := ms.bigfileElement(ts, bigi.ParentID)
 		if !ok {
-			return fmt.Errorf("bigfile input %v spends nonexistent bigfile output %v", i, sci.ParentID)
-		} else if sci.UnlockConditions.UnlockHash() != parent.BigFileOutput.Address {
-			return fmt.Errorf("bigfile input %v claims incorrect unlock conditions for bigfile output %v", i, sci.ParentID)
+			return fmt.Errorf("bigfile input %v spends nonexistent bigfile output %v", i, bigi.ParentID)
+		} else if bigi.UnlockConditions.UnlockHash() != parent.BigFileOutput.Address {
+			return fmt.Errorf("bigfile input %v claims incorrect unlock conditions for bigfile output %v", i, bigi.ParentID)
 		} else if parent.MaturityHeight > ms.base.childHeight() {
 			return fmt.Errorf("bigfile input %v has immature parent", i)
 		}
@@ -390,12 +390,12 @@ func validateArbitraryData(ms *MidState, txn types.Transaction) error {
 			}
 			// check that the transaction is signed by a current key
 			var signed bool
-			for _, sci := range txn.BigFileInputs {
-				if uh := sci.UnlockConditions.UnlockHash(); uh != ms.base.FoundationSubsidyAddress && uh != ms.base.FoundationManagementAddress {
+			for _, bigi := range txn.BigFileInputs {
+				if uh := bigi.UnlockConditions.UnlockHash(); uh != ms.base.FoundationSubsidyAddress && uh != ms.base.FoundationManagementAddress {
 					continue
 				}
 				for _, sig := range txn.Signatures {
-					signed = signed || (sig.ParentID == types.Hash256(sci.ParentID) && sig.CoveredFields.WholeTransaction)
+					signed = signed || (sig.ParentID == types.Hash256(bigi.ParentID) && sig.CoveredFields.WholeTransaction)
 				}
 				if signed {
 					break
@@ -430,9 +430,9 @@ func validateSignatures(ms *MidState, txn types.Transaction) error {
 		}
 		return true
 	}
-	for _, sci := range txn.BigFileInputs {
-		if !addEntry(types.Hash256(sci.ParentID), sci.UnlockConditions) {
-			return fmt.Errorf("transaction spends bigfile input %v more than once", sci.ParentID)
+	for _, bigi := range txn.BigFileInputs {
+		if !addEntry(types.Hash256(bigi.ParentID), bigi.UnlockConditions) {
+			return fmt.Errorf("transaction spends bigfile input %v more than once", bigi.ParentID)
 		}
 	}
 	for _, sfi := range txn.SiafundInputs {
@@ -535,8 +535,8 @@ func validateV2CurrencyOverflow(ms *MidState, txn types.V2Transaction) error {
 		add(ms.base.V2FileContractTax(fc))
 	}
 
-	for _, sco := range txn.BigFileOutputs {
-		add(sco.Value)
+	for _, bigo := range txn.BigFileOutputs {
+		add(bigo.Value)
 	}
 	for _, sfo := range txn.SiafundOutputs {
 		overflow = overflow || sfo.Value > ms.base.SiafundCount()
@@ -564,31 +564,31 @@ func validateV2CurrencyOverflow(ms *MidState, txn types.V2Transaction) error {
 func validateV2BigFiles(ms *MidState, txn types.V2Transaction) error {
 	sigHash := ms.base.InputSigHash(txn)
 	spent := make(map[types.BigFileOutputID]int)
-	for i, sci := range txn.BigFileInputs {
-		if txid, ok := ms.spent(sci.Parent.ID); ok {
+	for i, bigi := range txn.BigFileInputs {
+		if txid, ok := ms.spent(bigi.Parent.ID); ok {
 			return fmt.Errorf("bigfile input %v double-spends parent output (previously spent in %v)", i, txid)
-		} else if j, ok := spent[sci.Parent.ID]; ok {
+		} else if j, ok := spent[bigi.Parent.ID]; ok {
 			return fmt.Errorf("bigfile input %v double-spends parent output (previously spent by input %v)", i, j)
-		} else if sci.Parent.MaturityHeight > ms.base.childHeight() {
+		} else if bigi.Parent.MaturityHeight > ms.base.childHeight() {
 			return fmt.Errorf("bigfile input %v has immature parent", i)
 		}
-		spent[sci.Parent.ID] = i
+		spent[bigi.Parent.ID] = i
 
 		// check accumulator
-		if sci.Parent.StateElement.LeafIndex == types.UnassignedLeafIndex {
-			if i, ok := ms.elements[sci.Parent.ID]; !ok || !ms.sces[i].Created {
-				return fmt.Errorf("bigfile input %v spends nonexistent ephemeral output %v", i, sci.Parent.ID)
+		if bigi.Parent.StateElement.LeafIndex == types.UnassignedLeafIndex {
+			if i, ok := ms.elements[bigi.Parent.ID]; !ok || !ms.biges[i].Created {
+				return fmt.Errorf("bigfile input %v spends nonexistent ephemeral output %v", i, bigi.Parent.ID)
 			}
-		} else if !ms.base.Elements.containsUnspentBigFileElement(sci.Parent.Share()) {
-			if ms.base.Elements.containsSpentBigFileElement(sci.Parent.Share()) {
-				return fmt.Errorf("bigfile input %v double-spends output %v", i, sci.Parent.ID)
+		} else if !ms.base.Elements.containsUnspentBigFileElement(bigi.Parent.Share()) {
+			if ms.base.Elements.containsSpentBigFileElement(bigi.Parent.Share()) {
+				return fmt.Errorf("bigfile input %v double-spends output %v", i, bigi.Parent.ID)
 			}
-			return fmt.Errorf("bigfile input %v spends output (%v) not present in the accumulator", i, sci.Parent.ID)
+			return fmt.Errorf("bigfile input %v spends output (%v) not present in the accumulator", i, bigi.Parent.ID)
 		}
 
 		// check spend policy
-		sp := sci.SatisfiedPolicy
-		if sp.Policy.Address() != sci.Parent.BigFileOutput.Address {
+		sp := bigi.SatisfiedPolicy
+		if sp.Policy.Address() != bigi.Parent.BigFileOutput.Address {
 			return fmt.Errorf("bigfile input %v claims incorrect policy for parent address", i)
 		} else if err := sp.Policy.Verify(ms.base.Index.Height, ms.base.medianTimestamp(), sigHash, sp.Signatures, sp.Preimages); err != nil {
 			return fmt.Errorf("bigfile input %v failed to satisfy spend policy: %w", i, err)
@@ -596,8 +596,8 @@ func validateV2BigFiles(ms *MidState, txn types.V2Transaction) error {
 	}
 
 	var inputSum, outputSum types.Currency
-	for _, sci := range txn.BigFileInputs {
-		inputSum = inputSum.Add(sci.Parent.BigFileOutput.Value)
+	for _, bigi := range txn.BigFileInputs {
+		inputSum = inputSum.Add(bigi.Parent.BigFileOutput.Value)
 	}
 	for i, out := range txn.BigFileOutputs {
 		if out.Value.IsZero() {
@@ -887,9 +887,9 @@ func validateSupplement(s State, b types.Block, bs V1BlockSupplement) error {
 		return errors.New("incorrect number of transactions")
 	}
 	for _, txn := range bs.Transactions {
-		for _, sce := range txn.BigFileInputs {
-			if !s.Elements.containsUnspentBigFileElement(sce.Share()) {
-				return fmt.Errorf("bigfile element %v is not present in the accumulator", sce.ID)
+		for _, bige := range txn.BigFileInputs {
+			if !s.Elements.containsUnspentBigFileElement(bige.Share()) {
+				return fmt.Errorf("bigfile element %v is not present in the accumulator", bige.ID)
 			}
 		}
 		for _, sfe := range txn.SiafundInputs {

@@ -191,12 +191,12 @@ func (acc *ElementAccumulator) containsChainIndex(cie types.ChainIndexElement) b
 	return acc.containsLeaf(chainIndexLeaf(&cie))
 }
 
-func (acc *ElementAccumulator) containsUnspentBigFileElement(sce types.BigFileElement) bool {
-	return acc.containsLeaf(bigfileLeaf(&sce, false))
+func (acc *ElementAccumulator) containsUnspentBigFileElement(bige types.BigFileElement) bool {
+	return acc.containsLeaf(bigfileLeaf(&bige, false))
 }
 
-func (acc *ElementAccumulator) containsSpentBigFileElement(sce types.BigFileElement) bool {
-	return acc.containsLeaf(bigfileLeaf(&sce, true))
+func (acc *ElementAccumulator) containsSpentBigFileElement(bige types.BigFileElement) bool {
+	return acc.containsLeaf(bigfileLeaf(&bige, true))
 }
 
 func (acc *ElementAccumulator) containsUnspentSiafundElement(sfe types.SiafundElement) bool {

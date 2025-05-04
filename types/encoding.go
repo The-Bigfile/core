@@ -415,21 +415,21 @@ type V1BigFileOutput BigFileOutput
 type V2BigFileOutput BigFileOutput
 
 // Cast provides type safety for DecodeSliceCast.
-func (sco V1BigFileOutput) Cast() BigFileOutput { return BigFileOutput(sco) }
+func (bigo V1BigFileOutput) Cast() BigFileOutput { return BigFileOutput(bigo) }
 
 // Cast provides type safety for DecodeSliceCast.
-func (sco V2BigFileOutput) Cast() BigFileOutput { return BigFileOutput(sco) }
+func (bigo V2BigFileOutput) Cast() BigFileOutput { return BigFileOutput(bigo) }
 
 // EncodeTo implements types.EncoderTo.
-func (sco V1BigFileOutput) EncodeTo(e *Encoder) {
-	V1Currency(sco.Value).EncodeTo(e)
-	sco.Address.EncodeTo(e)
+func (bigo V1BigFileOutput) EncodeTo(e *Encoder) {
+	V1Currency(bigo.Value).EncodeTo(e)
+	bigo.Address.EncodeTo(e)
 }
 
 // EncodeTo implements types.EncoderTo.
-func (sco V2BigFileOutput) EncodeTo(e *Encoder) {
-	V2Currency(sco.Value).EncodeTo(e)
-	sco.Address.EncodeTo(e)
+func (bigo V2BigFileOutput) EncodeTo(e *Encoder) {
+	V2Currency(bigo.Value).EncodeTo(e)
+	bigo.Address.EncodeTo(e)
 }
 
 // EncodeTo implements types.EncoderTo.
@@ -641,11 +641,11 @@ func (cie ChainIndexElement) EncodeTo(e *Encoder) {
 }
 
 // EncodeTo implements types.EncoderTo.
-func (sce BigFileElement) EncodeTo(e *Encoder) {
-	sce.StateElement.EncodeTo(e)
-	sce.ID.EncodeTo(e)
-	V2BigFileOutput(sce.BigFileOutput).EncodeTo(e)
-	e.WriteUint64(sce.MaturityHeight)
+func (bige BigFileElement) EncodeTo(e *Encoder) {
+	bige.StateElement.EncodeTo(e)
+	bige.ID.EncodeTo(e)
+	V2BigFileOutput(bige.BigFileOutput).EncodeTo(e)
+	e.WriteUint64(bige.MaturityHeight)
 }
 
 // EncodeTo implements types.EncoderTo.
@@ -978,15 +978,15 @@ func (index *ChainIndex) DecodeFrom(d *Decoder) {
 }
 
 // DecodeFrom implements types.DecoderFrom.
-func (sco *V1BigFileOutput) DecodeFrom(d *Decoder) {
-	(*V1Currency)(&sco.Value).DecodeFrom(d)
-	sco.Address.DecodeFrom(d)
+func (bigo *V1BigFileOutput) DecodeFrom(d *Decoder) {
+	(*V1Currency)(&bigo.Value).DecodeFrom(d)
+	bigo.Address.DecodeFrom(d)
 }
 
 // DecodeFrom implements types.DecoderFrom.
-func (sco *V2BigFileOutput) DecodeFrom(d *Decoder) {
-	(*V2Currency)(&sco.Value).DecodeFrom(d)
-	sco.Address.DecodeFrom(d)
+func (bigo *V2BigFileOutput) DecodeFrom(d *Decoder) {
+	(*V2Currency)(&bigo.Value).DecodeFrom(d)
+	bigo.Address.DecodeFrom(d)
 }
 
 // DecodeFrom implements types.DecoderFrom.
@@ -1202,11 +1202,11 @@ func (cie *ChainIndexElement) DecodeFrom(d *Decoder) {
 }
 
 // DecodeFrom implements types.DecoderFrom.
-func (sce *BigFileElement) DecodeFrom(d *Decoder) {
-	sce.StateElement.DecodeFrom(d)
-	sce.ID.DecodeFrom(d)
-	(*V2BigFileOutput)(&sce.BigFileOutput).DecodeFrom(d)
-	sce.MaturityHeight = d.ReadUint64()
+func (bige *BigFileElement) DecodeFrom(d *Decoder) {
+	bige.StateElement.DecodeFrom(d)
+	bige.ID.DecodeFrom(d)
+	(*V2BigFileOutput)(&bige.BigFileOutput).DecodeFrom(d)
+	bige.MaturityHeight = d.ReadUint64()
 }
 
 // DecodeFrom implements types.DecoderFrom.

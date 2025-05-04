@@ -36,9 +36,9 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 	}
 	// apply the block and extract the created elements
 	cs, cau := consensus.ApplyBlock(cs, b, consensus.V1BlockSupplement{}, time.Time{})
-	sces := make([]types.BigFileElement, len(cau.BigFileElementDiffs()))
-	for i := range sces {
-		sces[i] = cau.BigFileElementDiffs()[i].BigFileElement.Copy()
+	biges := make([]types.BigFileElement, len(cau.BigFileElementDiffs()))
+	for i := range biges {
+		biges[i] = cau.BigFileElementDiffs()[i].BigFileElement.Copy()
 	}
 	sfes := make([]types.SiafundElement, len(cau.SiafundElementDiffs()))
 	for i := range sfes {
@@ -51,7 +51,7 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 
 	// select randomly
 	rng := frand.NewCustom(make([]byte, 32), 1024, 12)
-	rng.Shuffle(len(sces), reflect.Swapper(sces))
+	rng.Shuffle(len(biges), reflect.Swapper(biges))
 	rng.Shuffle(len(sfes), reflect.Swapper(sfes))
 	rng.Shuffle(len(fces), reflect.Swapper(fces))
 
@@ -63,10 +63,10 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 		for j := 0; j < numElems; j++ {
 			switch j % 4 {
 			case 0:
-				txn.BigFileInputs, sces = append(txn.BigFileInputs, types.V2BigFileInput{
-					Parent:          sces[0].Copy(),
+				txn.BigFileInputs, biges = append(txn.BigFileInputs, types.V2BigFileInput{
+					Parent:          biges[0].Copy(),
 					SatisfiedPolicy: sp,
-				}), sces[1:]
+				}), biges[1:]
 			case 1:
 				txn.SiafundInputs, sfes = append(txn.SiafundInputs, types.V2SiafundInput{
 					Parent:          sfes[0].Copy(),
