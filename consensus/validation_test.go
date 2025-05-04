@@ -239,11 +239,11 @@ func prepareContractFormation(renterPubKey types.PublicKey, hostKey types.Public
 			}
 			return types.NewCurrency64(r)
 		}
-		sfc := (State{}).BigfundCount()
-		tm := mod64(target, sfc)
-		gm := mod64(guess, sfc)
+		bfc := (State{}).BigfundCount()
+		tm := mod64(target, bfc)
+		gm := mod64(guess, bfc)
 		if gm.Cmp(tm) < 0 {
-			guess = guess.Sub(types.NewCurrency64(sfc))
+			guess = guess.Sub(types.NewCurrency64(bfc))
 		}
 		return guess.Add(tm).Sub(gm)
 	}
@@ -1364,9 +1364,9 @@ func TestValidateV2Block(t *testing.T) {
 	for i := range testBiges {
 		testBiges[i] = testAU.BigFileElementDiffs()[i].BigFileElement.Copy()
 	}
-	testSfes := make([]types.BigfundElement, len(testAU.BigfundElementDiffs()))
-	for i := range testSfes {
-		testSfes[i] = testAU.BigfundElementDiffs()[i].BigfundElement.Copy()
+	testBfes := make([]types.BigfundElement, len(testAU.BigfundElementDiffs()))
+	for i := range testBfes {
+		testBfes[i] = testAU.BigfundElementDiffs()[i].BigfundElement.Copy()
 	}
 	testFces := make([]types.V2FileContractElement, len(testAU.V2FileContractElementDiffs()))
 	for i := range testFces {
@@ -1398,7 +1398,7 @@ func TestValidateV2Block(t *testing.T) {
 		checkApplyUpdate(t, cs, au)
 		db.applyBlock(au)
 		updateProofs(au, biges, bfes, fces, cies)
-		updateProofs(au, testBiges, testSfes, testFces, nil)
+		updateProofs(au, testBiges, testBfes, testFces, nil)
 		cies = append(cies, au.ChainIndexElement())
 
 		blockID = b.ID()
@@ -1465,7 +1465,7 @@ func TestValidateV2Block(t *testing.T) {
 				func(b *types.Block) {
 					txn := &b.V2.Transactions[0]
 					txn.BigfundInputs = append(txn.BigfundInputs, types.V2BigfundInput{
-						Parent:          testSfes[0].Copy(),
+						Parent:          testBfes[0].Copy(),
 						SatisfiedPolicy: types.SatisfiedPolicy{Policy: giftPolicy},
 					})
 				},

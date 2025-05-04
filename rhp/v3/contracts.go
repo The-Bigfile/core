@@ -143,11 +143,11 @@ func taxAdjustedPayout(target types.Currency) types.Currency {
 		}
 		return types.NewCurrency64(r)
 	}
-	sfc := (consensus.State{}).BigfundCount()
-	tm := mod64(target, sfc)
-	gm := mod64(guess, sfc)
+	bfc := (consensus.State{}).BigfundCount()
+	tm := mod64(target, bfc)
+	gm := mod64(guess, bfc)
 	if gm.Cmp(tm) < 0 {
-		guess = guess.Sub(types.NewCurrency64(sfc))
+		guess = guess.Sub(types.NewCurrency64(bfc))
 	}
 	return guess.Add(tm).Sub(gm)
 }
