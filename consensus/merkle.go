@@ -85,9 +85,9 @@ func bigfileLeaf(e *types.BigFileElement, spent bool) elementLeaf {
 	return elementLeaf{&e.StateElement, elemHash, spent}
 }
 
-// siafundLeaf returns the elementLeaf for a SiafundElement.
-func siafundLeaf(e *types.SiafundElement, spent bool) elementLeaf {
-	elemHash := hashAll("leaf/siafund", e.ID, types.V2SiafundOutput(e.SiafundOutput), types.V2Currency(e.ClaimStart))
+// bigfundLeaf returns the elementLeaf for a BigfundElement.
+func bigfundLeaf(e *types.BigfundElement, spent bool) elementLeaf {
+	elemHash := hashAll("leaf/bigfund", e.ID, types.V2BigfundOutput(e.BigfundOutput), types.V2Currency(e.ClaimStart))
 	return elementLeaf{&e.StateElement, elemHash, spent}
 }
 
@@ -199,12 +199,12 @@ func (acc *ElementAccumulator) containsSpentBigFileElement(bige types.BigFileEle
 	return acc.containsLeaf(bigfileLeaf(&bige, true))
 }
 
-func (acc *ElementAccumulator) containsUnspentSiafundElement(sfe types.SiafundElement) bool {
-	return acc.containsLeaf(siafundLeaf(&sfe, false))
+func (acc *ElementAccumulator) containsUnspentBigfundElement(bfe types.BigfundElement) bool {
+	return acc.containsLeaf(bigfundLeaf(&bfe, false))
 }
 
-func (acc *ElementAccumulator) containsSpentSiafundElement(sfe types.SiafundElement) bool {
-	return acc.containsLeaf(siafundLeaf(&sfe, true))
+func (acc *ElementAccumulator) containsSpentBigfundElement(bfe types.BigfundElement) bool {
+	return acc.containsLeaf(bigfundLeaf(&bfe, true))
 }
 
 func (acc *ElementAccumulator) containsUnresolvedFileContractElement(fce types.FileContractElement) bool {

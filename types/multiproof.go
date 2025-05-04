@@ -33,8 +33,8 @@ func bigfileLeaf(e *BigFileElement) elementLeaf {
 	return elementLeaf{&e.StateElement, hashAll("leaf/bigfile", e.ID, V2BigFileOutput(e.BigFileOutput), e.MaturityHeight)}
 }
 
-func siafundLeaf(e *SiafundElement) elementLeaf {
-	return elementLeaf{&e.StateElement, hashAll("leaf/siafund", e.ID, V2SiafundOutput(e.SiafundOutput), V2Currency(e.ClaimStart))}
+func bigfundLeaf(e *BigfundElement) elementLeaf {
+	return elementLeaf{&e.StateElement, hashAll("leaf/bigfund", e.ID, V2BigfundOutput(e.BigfundOutput), V2Currency(e.ClaimStart))}
 }
 
 func v2FileContractLeaf(e *V2FileContractElement) elementLeaf {
@@ -56,8 +56,8 @@ func forEachElementLeaf(txns []V2Transaction, fn func(l elementLeaf)) {
 		for i := range txn.BigFileInputs {
 			visit(bigfileLeaf(&txn.BigFileInputs[i].Parent))
 		}
-		for i := range txn.SiafundInputs {
-			visit(siafundLeaf(&txn.SiafundInputs[i].Parent))
+		for i := range txn.BigfundInputs {
+			visit(bigfundLeaf(&txn.BigfundInputs[i].Parent))
 		}
 		for i := range txn.FileContractRevisions {
 			visit(v2FileContractLeaf(&txn.FileContractRevisions[i].Parent))

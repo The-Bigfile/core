@@ -20,9 +20,9 @@ func checkApplyUpdate(t *testing.T, cs State, au ApplyUpdate) {
 			t.Fatalf("consensus: bigfile element %v %v not found in accumulator after apply", bige.Spent, bige.BigFileElement.ID)
 		}
 	}
-	for _, sfe := range au.sfes {
-		if !cs.Elements.containsLeaf(siafundLeaf(&sfe.SiafundElement, sfe.Spent)) {
-			t.Fatalf("consensus: siafund element %v not found in accumulator after apply", sfe.SiafundElement.ID)
+	for _, bfe := range au.bfes {
+		if !cs.Elements.containsLeaf(bigfundLeaf(&bfe.BigfundElement, bfe.Spent)) {
+			t.Fatalf("consensus: bigfund element %v not found in accumulator after apply", bfe.BigfundElement.ID)
 		}
 	}
 	for _, fce := range au.fces {
@@ -50,9 +50,9 @@ func checkRevertUpdate(t *testing.T, cs State, ru RevertUpdate) {
 			t.Fatal("consensus: bigfile element found in accumulator after revert")
 		}
 	}
-	for _, sfe := range ru.sfes {
-		if cs.Elements.containsLeaf(siafundLeaf(&sfe.SiafundElement, sfe.Spent)) {
-			t.Fatal("consensus: siafund element found in accumulator after revert")
+	for _, bfe := range ru.bfes {
+		if cs.Elements.containsLeaf(bigfundLeaf(&bfe.BigfundElement, bfe.Spent)) {
+			t.Fatal("consensus: bigfund element found in accumulator after revert")
 		}
 	}
 	for _, fce := range ru.fces {
@@ -71,7 +71,7 @@ func checkRevertUpdate(t *testing.T, cs State, ru RevertUpdate) {
 		}
 	}
 }
-func checkUpdateElements(t *testing.T, au ApplyUpdate, addedBIGEs, spentBIGEs []types.BigFileElement, addedSFEs, spentSFEs []types.SiafundElement) {
+func checkUpdateElements(t *testing.T, au ApplyUpdate, addedBIGEs, spentBIGEs []types.BigFileElement, addedBFEs, spentBFEs []types.BigfundElement) {
 	for _, biged := range au.BigFileElementDiffs() {
 		biges := &addedBIGEs
 		if biged.Spent {
@@ -88,28 +88,28 @@ func checkUpdateElements(t *testing.T, au ApplyUpdate, addedBIGEs, spentBIGEs []
 		}
 		*biges = (*biges)[1:]
 	}
-	for _, sfed := range au.SiafundElementDiffs() {
-		sfes := &addedSFEs
-		if sfed.Spent {
-			sfes = &spentSFEs
+	for _, bfed := range au.BigfundElementDiffs() {
+		bfes := &addedBFEs
+		if bfed.Spent {
+			bfes = &spentBFEs
 		}
-		if len(*sfes) == 0 {
-			t.Fatal("unexpected spent siafund element")
+		if len(*bfes) == 0 {
+			t.Fatal("unexpected spent bigfund element")
 		}
-		sfe := sfed.SiafundElement.Move()
-		sfe.StateElement = types.StateElement{}
-		sfe.ID = types.SiafundOutputID{}
-		if !reflect.DeepEqual(sfe.Move(), (*sfes)[0].Copy()) {
-			t.Fatalf("siafund element doesn't match:\n%v\nvs\n%v\n", sfe.Move(), (*sfes)[0].Copy())
+		bfe := bfed.BigfundElement.Move()
+		bfe.StateElement = types.StateElement{}
+		bfe.ID = types.BigfundOutputID{}
+		if !reflect.DeepEqual(bfe.Move(), (*bfes)[0].Copy()) {
+			t.Fatalf("bigfund element doesn't match:\n%v\nvs\n%v\n", bfe.Move(), (*bfes)[0].Copy())
 		}
-		*sfes = (*sfes)[1:]
+		*bfes = (*bfes)[1:]
 	}
-	if len(addedBIGEs)+len(spentBIGEs)+len(addedSFEs)+len(spentSFEs) > 0 {
+	if len(addedBIGEs)+len(spentBIGEs)+len(addedBFEs)+len(spentBFEs) > 0 {
 		t.Fatal("extraneous elements")
 	}
 }
 
-func checkRevertElements(t *testing.T, ru RevertUpdate, addedBIGEs, spentBIGEs []types.BigFileElement, addedSFEs, spentSFEs []types.SiafundElement) {
+func checkRevertElements(t *testing.T, ru RevertUpdate, addedBIGEs, spentBIGEs []types.BigFileElement, addedBFEs, spentBFEs []types.BigfundElement) {
 	for _, biged := range ru.BigFileElementDiffs() {
 		biges := &addedBIGEs
 		if biged.Spent {
@@ -126,23 +126,23 @@ func checkRevertElements(t *testing.T, ru RevertUpdate, addedBIGEs, spentBIGEs [
 		}
 		*biges = (*biges)[:len(*biges)-1]
 	}
-	for _, sfed := range ru.SiafundElementDiffs() {
-		sfes := &addedSFEs
-		if sfed.Spent {
-			sfes = &spentSFEs
+	for _, bfed := range ru.BigfundElementDiffs() {
+		bfes := &addedBFEs
+		if bfed.Spent {
+			bfes = &spentBFEs
 		}
-		if len(*sfes) == 0 {
-			t.Fatal("unexpected spent siafund element")
+		if len(*bfes) == 0 {
+			t.Fatal("unexpected spent bigfund element")
 		}
-		sfe := sfed.SiafundElement.Move()
-		sfe.StateElement = types.StateElement{}
-		sfe.ID = types.SiafundOutputID{}
-		if !reflect.DeepEqual(sfe.Move(), (*sfes)[len(*sfes)-1].Copy()) {
-			t.Fatalf("siafund element doesn't match:\n%v\nvs\n%v\n", sfe.Move(), (*sfes)[len(*sfes)-1].Copy())
+		bfe := bfed.BigfundElement.Move()
+		bfe.StateElement = types.StateElement{}
+		bfe.ID = types.BigfundOutputID{}
+		if !reflect.DeepEqual(bfe.Move(), (*bfes)[len(*bfes)-1].Copy()) {
+			t.Fatalf("bigfund element doesn't match:\n%v\nvs\n%v\n", bfe.Move(), (*bfes)[len(*bfes)-1].Copy())
 		}
-		*sfes = (*sfes)[:len(*sfes)-1]
+		*bfes = (*bfes)[:len(*bfes)-1]
 	}
-	if len(addedBIGEs)+len(spentBIGEs)+len(addedSFEs)+len(spentSFEs) > 0 {
+	if len(addedBIGEs)+len(spentBIGEs)+len(addedBFEs)+len(spentBFEs) > 0 {
 		t.Fatal("extraneous elements")
 	}
 }
@@ -154,13 +154,13 @@ func TestApplyBlock(t *testing.T) {
 	giftPublicKey := giftPrivateKey.PublicKey()
 	giftAddress := types.StandardUnlockHash(giftPublicKey)
 	giftAmountBIG := types.BigFiles(100)
-	giftAmountSF := uint64(100)
+	giftAmountBF := uint64(100)
 	giftTxn := types.Transaction{
 		BigFileOutputs: []types.BigFileOutput{
 			{Address: giftAddress, Value: giftAmountBIG},
 		},
-		SiafundOutputs: []types.SiafundOutput{
-			{Address: giftAddress, Value: giftAmountSF},
+		BigfundOutputs: []types.BigfundOutput{
+			{Address: giftAddress, Value: giftAmountBF},
 		},
 	}
 	genesisBlock.Transactions = []types.Transaction{giftTxn}
@@ -179,8 +179,8 @@ func TestApplyBlock(t *testing.T) {
 		for i := range txn.BigFileInputs {
 			appendSig(types.Hash256(txn.BigFileInputs[i].ParentID))
 		}
-		for i := range txn.SiafundInputs {
-			appendSig(types.Hash256(txn.SiafundInputs[i].ParentID))
+		for i := range txn.BigfundInputs {
+			appendSig(types.Hash256(txn.BigfundInputs[i].ParentID))
 		}
 		for i := range txn.FileContractRevisions {
 			appendSig(types.Hash256(txn.FileContractRevisions[i].ParentID))
@@ -216,13 +216,13 @@ func TestApplyBlock(t *testing.T) {
 		{BigFileOutput: b1.MinerPayouts[0], MaturityHeight: cs.MaturityHeight()},
 	}
 	spentBIGEs := []types.BigFileElement{}
-	addedSFEs := []types.SiafundElement{}
-	spentSFEs := []types.SiafundElement{}
+	addedBFEs := []types.BigfundElement{}
+	spentBFEs := []types.BigfundElement{}
 	if au, err := addBlock(&b1); err != nil {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// block that spends part of the gift transaction
@@ -231,8 +231,8 @@ func TestApplyBlock(t *testing.T) {
 			ParentID:         giftTxn.BigFileOutputID(0),
 			UnlockConditions: types.StandardUnlockConditions(giftPublicKey),
 		}},
-		SiafundInputs: []types.SiafundInput{{
-			ParentID:         giftTxn.SiafundOutputID(0),
+		BigfundInputs: []types.BigfundInput{{
+			ParentID:         giftTxn.BigfundOutputID(0),
 			ClaimAddress:     types.VoidAddress,
 			UnlockConditions: types.StandardUnlockConditions(giftPublicKey),
 		}},
@@ -240,9 +240,9 @@ func TestApplyBlock(t *testing.T) {
 			{Value: giftAmountBIG.Div64(2), Address: giftAddress},
 			{Value: giftAmountBIG.Div64(2), Address: types.VoidAddress},
 		},
-		SiafundOutputs: []types.SiafundOutput{
-			{Value: giftAmountSF / 2, Address: giftAddress},
-			{Value: giftAmountSF / 2, Address: types.VoidAddress},
+		BigfundOutputs: []types.BigfundOutput{
+			{Value: giftAmountBF / 2, Address: giftAddress},
+			{Value: giftAmountBF / 2, Address: types.VoidAddress},
 		},
 	}
 	signTxn(&txnB2)
@@ -255,18 +255,18 @@ func TestApplyBlock(t *testing.T) {
 	addedBIGEs = []types.BigFileElement{
 		{BigFileOutput: txnB2.BigFileOutputs[0]},
 		{BigFileOutput: txnB2.BigFileOutputs[1]},
-		{BigFileOutput: types.BigFileOutput{Value: types.ZeroCurrency, Address: txnB2.SiafundInputs[0].ClaimAddress}, MaturityHeight: cs.MaturityHeight()},
+		{BigFileOutput: types.BigFileOutput{Value: types.ZeroCurrency, Address: txnB2.BigfundInputs[0].ClaimAddress}, MaturityHeight: cs.MaturityHeight()},
 		{BigFileOutput: b2.MinerPayouts[0], MaturityHeight: cs.MaturityHeight()},
 	}
 	spentBIGEs = []types.BigFileElement{
 		{BigFileOutput: giftTxn.BigFileOutputs[0]},
 	}
-	addedSFEs = []types.SiafundElement{
-		{SiafundOutput: txnB2.SiafundOutputs[0]},
-		{SiafundOutput: txnB2.SiafundOutputs[1]},
+	addedBFEs = []types.BigfundElement{
+		{BigfundOutput: txnB2.BigfundOutputs[0]},
+		{BigfundOutput: txnB2.BigfundOutputs[1]},
 	}
-	spentSFEs = []types.SiafundElement{
-		{SiafundOutput: giftTxn.SiafundOutputs[0]},
+	spentBFEs = []types.BigfundElement{
+		{BigfundOutput: giftTxn.BigfundOutputs[0]},
 	}
 
 	prev := cs
@@ -275,7 +275,7 @@ func TestApplyBlock(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	ru := RevertBlock(prev, b2, bs)
@@ -290,7 +290,7 @@ func TestApplyBlock(t *testing.T) {
 	}
 
 	checkRevertUpdate(t, cs, ru)
-	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 
 	// reverting a non-child block should trigger a panic
 	func() {
@@ -480,13 +480,13 @@ func TestApplyRevertBlockV1(t *testing.T) {
 
 	giftAddress := types.StandardUnlockHash(giftPublicKey)
 	giftAmountBIG := types.BigFiles(100)
-	giftAmountSF := uint64(100)
+	giftAmountBF := uint64(100)
 	giftTxn := types.Transaction{
 		BigFileOutputs: []types.BigFileOutput{
 			{Address: giftAddress, Value: giftAmountBIG},
 		},
-		SiafundOutputs: []types.SiafundOutput{
-			{Address: giftAddress, Value: giftAmountSF},
+		BigfundOutputs: []types.BigfundOutput{
+			{Address: giftAddress, Value: giftAmountBF},
 		},
 	}
 	genesisBlock.Transactions = []types.Transaction{giftTxn}
@@ -505,8 +505,8 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		for i := range txn.BigFileInputs {
 			appendSig(giftPrivateKey, 0, types.Hash256(txn.BigFileInputs[i].ParentID))
 		}
-		for i := range txn.SiafundInputs {
-			appendSig(giftPrivateKey, 0, types.Hash256(txn.SiafundInputs[i].ParentID))
+		for i := range txn.BigfundInputs {
+			appendSig(giftPrivateKey, 0, types.Hash256(txn.BigfundInputs[i].ParentID))
 		}
 		for i := range txn.FileContractRevisions {
 			appendSig(renterPrivateKey, 0, types.Hash256(txn.FileContractRevisions[i].ParentID))
@@ -533,13 +533,13 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		{BigFileOutput: b1.MinerPayouts[0], MaturityHeight: cs.MaturityHeight()},
 	}
 	spentBIGEs := []types.BigFileElement{}
-	addedSFEs := []types.SiafundElement{}
-	spentSFEs := []types.SiafundElement{}
+	addedBFEs := []types.BigfundElement{}
+	spentBFEs := []types.BigfundElement{}
 	if au, err := addBlock(&b1, db.supplementTipBlock(b1)); err != nil {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// block that spends part of the gift transaction
@@ -548,8 +548,8 @@ func TestApplyRevertBlockV1(t *testing.T) {
 			ParentID:         giftTxn.BigFileOutputID(0),
 			UnlockConditions: types.StandardUnlockConditions(giftPublicKey),
 		}},
-		SiafundInputs: []types.SiafundInput{{
-			ParentID:         giftTxn.SiafundOutputID(0),
+		BigfundInputs: []types.BigfundInput{{
+			ParentID:         giftTxn.BigfundOutputID(0),
 			ClaimAddress:     types.VoidAddress,
 			UnlockConditions: types.StandardUnlockConditions(giftPublicKey),
 		}},
@@ -557,9 +557,9 @@ func TestApplyRevertBlockV1(t *testing.T) {
 			{Value: giftAmountBIG.Div64(2), Address: giftAddress},
 			{Value: giftAmountBIG.Div64(2), Address: types.VoidAddress},
 		},
-		SiafundOutputs: []types.SiafundOutput{
-			{Value: giftAmountSF / 2, Address: giftAddress},
-			{Value: giftAmountSF / 2, Address: types.VoidAddress},
+		BigfundOutputs: []types.BigfundOutput{
+			{Value: giftAmountBF / 2, Address: giftAddress},
+			{Value: giftAmountBF / 2, Address: types.VoidAddress},
 		},
 	}
 	signTxn(&txnB2)
@@ -572,18 +572,18 @@ func TestApplyRevertBlockV1(t *testing.T) {
 	addedBIGEs = []types.BigFileElement{
 		{BigFileOutput: txnB2.BigFileOutputs[0]},
 		{BigFileOutput: txnB2.BigFileOutputs[1]},
-		{BigFileOutput: types.BigFileOutput{Value: types.ZeroCurrency, Address: txnB2.SiafundInputs[0].ClaimAddress}, MaturityHeight: cs.MaturityHeight()},
+		{BigFileOutput: types.BigFileOutput{Value: types.ZeroCurrency, Address: txnB2.BigfundInputs[0].ClaimAddress}, MaturityHeight: cs.MaturityHeight()},
 		{BigFileOutput: b2.MinerPayouts[0], MaturityHeight: cs.MaturityHeight()},
 	}
 	spentBIGEs = []types.BigFileElement{
 		{BigFileOutput: giftTxn.BigFileOutputs[0]},
 	}
-	addedSFEs = []types.SiafundElement{
-		{SiafundOutput: txnB2.SiafundOutputs[0]},
-		{SiafundOutput: txnB2.SiafundOutputs[1]},
+	addedBFEs = []types.BigfundElement{
+		{BigfundOutput: txnB2.BigfundOutputs[0]},
+		{BigfundOutput: txnB2.BigfundOutputs[1]},
 	}
-	spentSFEs = []types.SiafundElement{
-		{SiafundOutput: giftTxn.SiafundOutputs[0]},
+	spentBFEs = []types.BigfundElement{
+		{BigfundOutput: giftTxn.BigfundOutputs[0]},
 	}
 
 	prev := cs
@@ -592,14 +592,14 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
-	// revert block spending big and sf
+	// revert block spending big and bf
 	ru := RevertBlock(prev, b2, bs)
 	cs = prev
 	checkRevertUpdate(t, cs, ru)
-	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	db.revertBlock(ru)
 
 	// block that creates a file contract
@@ -630,8 +630,8 @@ func TestApplyRevertBlockV1(t *testing.T) {
 	spentBIGEs = []types.BigFileElement{
 		{BigFileOutput: giftTxn.BigFileOutputs[0]},
 	}
-	addedSFEs = nil
-	spentSFEs = nil
+	addedBFEs = nil
+	spentBFEs = nil
 
 	// add block creating fc
 	bs = db.supplementTipBlock(b3)
@@ -639,14 +639,14 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// revert block creating fc
 	ru = RevertBlock(prev, b3, bs)
 	cs = prev
 	checkRevertUpdate(t, cs, ru)
-	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	db.revertBlock(ru)
 
 	// readd block creating fc
@@ -654,7 +654,7 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// block creating file contract revision
@@ -690,8 +690,8 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		{BigFileOutput: b4.MinerPayouts[0], MaturityHeight: cs.MaturityHeight()},
 	}
 	spentBIGEs = []types.BigFileElement{}
-	addedSFEs = nil
-	spentSFEs = nil
+	addedBFEs = nil
+	spentBFEs = nil
 
 	prev = cs
 	bs = db.supplementTipBlock(b4)
@@ -699,14 +699,14 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// revert block revising fc
 	ru = RevertBlock(prev, b4, bs)
 	cs = prev
 	checkRevertUpdate(t, cs, ru)
-	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	db.revertBlock(ru)
 
 	// readd block revising fc
@@ -714,7 +714,7 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// block with storage proof
@@ -745,8 +745,8 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		{BigFileOutput: b5.MinerPayouts[0], MaturityHeight: cs.MaturityHeight()},
 	}
 	spentBIGEs = nil
-	addedSFEs = nil
-	spentSFEs = nil
+	addedBFEs = nil
+	spentBFEs = nil
 
 	// add block with storage proof
 	bs = db.supplementTipBlock(b5)
@@ -759,14 +759,14 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// revert block with storage proof
 	ru = RevertBlock(prev, b5, bs)
 	cs = prev
 	checkRevertUpdate(t, cs, ru)
-	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	db.revertBlock(ru)
 
 	// readd block with storage proof
@@ -774,7 +774,7 @@ func TestApplyRevertBlockV1(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 }
 
@@ -794,13 +794,13 @@ func TestApplyRevertBlockV2(t *testing.T) {
 
 	giftAddress := types.StandardUnlockHash(giftPublicKey)
 	giftAmountBIG := types.BigFiles(100)
-	giftAmountSF := uint64(100)
+	giftAmountBF := uint64(100)
 	giftTxn := types.Transaction{
 		BigFileOutputs: []types.BigFileOutput{
 			{Address: giftAddress, Value: giftAmountBIG},
 		},
-		SiafundOutputs: []types.SiafundOutput{
-			{Address: giftAddress, Value: giftAmountSF},
+		BigfundOutputs: []types.BigfundOutput{
+			{Address: giftAddress, Value: giftAmountBF},
 		},
 	}
 	genesisBlock.Transactions = []types.Transaction{giftTxn}
@@ -813,8 +813,8 @@ func TestApplyRevertBlockV2(t *testing.T) {
 		for i := range txn.BigFileInputs {
 			txn.BigFileInputs[i].SatisfiedPolicy.Signatures = []types.Signature{giftPrivateKey.SignHash(cs.InputSigHash(*txn))}
 		}
-		for i := range txn.SiafundInputs {
-			txn.SiafundInputs[i].SatisfiedPolicy.Signatures = []types.Signature{giftPrivateKey.SignHash(cs.InputSigHash(*txn))}
+		for i := range txn.BigfundInputs {
+			txn.BigfundInputs[i].SatisfiedPolicy.Signatures = []types.Signature{giftPrivateKey.SignHash(cs.InputSigHash(*txn))}
 		}
 		for i := range txn.FileContracts {
 			txn.FileContracts[i].RenterSignature = renterPrivateKey.SignHash(cs.ContractSigHash(txn.FileContracts[i]))
@@ -861,13 +861,13 @@ func TestApplyRevertBlockV2(t *testing.T) {
 		{BigFileOutput: b1.MinerPayouts[0], MaturityHeight: cs.MaturityHeight()},
 	}
 	spentBIGEs := []types.BigFileElement{}
-	addedSFEs := []types.SiafundElement{}
-	spentSFEs := []types.SiafundElement{}
+	addedBFEs := []types.BigfundElement{}
+	spentBFEs := []types.BigfundElement{}
 	if au, err := addBlock(&b1); err != nil {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 	// block that spends part of the gift transaction
 	txnB2 := types.V2Transaction{
@@ -882,8 +882,8 @@ func TestApplyRevertBlockV2(t *testing.T) {
 			Parent:          db.biges[giftTxn.BigFileOutputID(0)].Copy(),
 			SatisfiedPolicy: satisfiedPolicy(types.StandardUnlockConditions(giftPublicKey)),
 		}},
-		SiafundInputs: []types.V2SiafundInput{{
-			Parent:          db.sfes[giftTxn.SiafundOutputID(0)].Copy(),
+		BigfundInputs: []types.V2BigfundInput{{
+			Parent:          db.bfes[giftTxn.BigfundOutputID(0)].Copy(),
 			ClaimAddress:    types.VoidAddress,
 			SatisfiedPolicy: satisfiedPolicy(types.StandardUnlockConditions(giftPublicKey)),
 		}},
@@ -891,9 +891,9 @@ func TestApplyRevertBlockV2(t *testing.T) {
 			{Value: giftAmountBIG.Div64(2), Address: giftAddress},
 			{Value: giftAmountBIG.Div64(2), Address: types.VoidAddress},
 		},
-		SiafundOutputs: []types.SiafundOutput{
-			{Value: giftAmountSF / 2, Address: giftAddress},
-			{Value: giftAmountSF / 2, Address: types.VoidAddress},
+		BigfundOutputs: []types.BigfundOutput{
+			{Value: giftAmountBF / 2, Address: giftAddress},
+			{Value: giftAmountBF / 2, Address: types.VoidAddress},
 		},
 	}
 	signTxn(cs, &txnB2)
@@ -909,18 +909,18 @@ func TestApplyRevertBlockV2(t *testing.T) {
 	addedBIGEs = []types.BigFileElement{
 		{BigFileOutput: txnB2.BigFileOutputs[0]},
 		{BigFileOutput: txnB2.BigFileOutputs[1]},
-		{BigFileOutput: types.BigFileOutput{Value: types.ZeroCurrency, Address: txnB2.SiafundInputs[0].ClaimAddress}, MaturityHeight: cs.MaturityHeight()},
+		{BigFileOutput: types.BigFileOutput{Value: types.ZeroCurrency, Address: txnB2.BigfundInputs[0].ClaimAddress}, MaturityHeight: cs.MaturityHeight()},
 		{BigFileOutput: b2.MinerPayouts[0], MaturityHeight: cs.MaturityHeight()},
 	}
 	spentBIGEs = []types.BigFileElement{
 		{BigFileOutput: giftTxn.BigFileOutputs[0]},
 	}
-	addedSFEs = []types.SiafundElement{
-		{SiafundOutput: txnB2.SiafundOutputs[0]},
-		{SiafundOutput: txnB2.SiafundOutputs[1]},
+	addedBFEs = []types.BigfundElement{
+		{BigfundOutput: txnB2.BigfundOutputs[0]},
+		{BigfundOutput: txnB2.BigfundOutputs[1]},
 	}
-	spentSFEs = []types.SiafundElement{
-		{SiafundOutput: giftTxn.SiafundOutputs[0]},
+	spentBFEs = []types.BigfundElement{
+		{BigfundOutput: giftTxn.BigfundOutputs[0]},
 	}
 
 	prev := cs
@@ -928,14 +928,14 @@ func TestApplyRevertBlockV2(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
-	// revert block spending big and sf
+	// revert block spending big and bf
 	ru := RevertBlock(prev, b2, V1BlockSupplement{})
 	cs = prev
 	checkRevertUpdate(t, cs, ru)
-	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	db.revertBlock(ru)
 
 	// block that creates a file contract
@@ -986,22 +986,22 @@ func TestApplyRevertBlockV2(t *testing.T) {
 	spentBIGEs = []types.BigFileElement{
 		{BigFileOutput: giftTxn.BigFileOutputs[0]},
 	}
-	addedSFEs = nil
-	spentSFEs = nil
+	addedBFEs = nil
+	spentBFEs = nil
 
 	// add block creating fc
 	if au, err := addBlock(&b3); err != nil {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// revert block creating fc
 	ru = RevertBlock(prev, b3, V1BlockSupplement{})
 	cs = prev
 	checkRevertUpdate(t, cs, ru)
-	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	db.revertBlock(ru)
 
 	// readd block creating fc
@@ -1009,7 +1009,7 @@ func TestApplyRevertBlockV2(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// block creating file contract revision
@@ -1042,8 +1042,8 @@ func TestApplyRevertBlockV2(t *testing.T) {
 	spentBIGEs = []types.BigFileElement{
 		// {BigFileOutput: giftTxn.BigFileOutputs[0]},
 	}
-	addedSFEs = nil
-	spentSFEs = nil
+	addedBFEs = nil
+	spentBFEs = nil
 
 	var cie types.ChainIndexElement
 	prev = cs
@@ -1052,14 +1052,14 @@ func TestApplyRevertBlockV2(t *testing.T) {
 	} else {
 		cie = au.ChainIndexElement()
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// revert block revising fc
 	ru = RevertBlock(prev, b4, V1BlockSupplement{})
 	cs = prev
 	checkRevertUpdate(t, cs, ru)
-	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	db.revertBlock(ru)
 
 	// readd block revising fc
@@ -1067,7 +1067,7 @@ func TestApplyRevertBlockV2(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// block with storage proof
@@ -1106,8 +1106,8 @@ func TestApplyRevertBlockV2(t *testing.T) {
 		{BigFileOutput: b5.MinerPayouts[0], MaturityHeight: cs.MaturityHeight()},
 	}
 	spentBIGEs = nil
-	addedSFEs = nil
-	spentSFEs = nil
+	addedBFEs = nil
+	spentBFEs = nil
 
 	// add block with storage proof
 	prev = cs
@@ -1115,14 +1115,14 @@ func TestApplyRevertBlockV2(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 
 	// revert block with storage proof
 	ru = RevertBlock(prev, b5, V1BlockSupplement{})
 	cs = prev
 	checkRevertUpdate(t, cs, ru)
-	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+	checkRevertElements(t, ru, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	db.revertBlock(ru)
 
 	// readd block with storage proof
@@ -1130,11 +1130,11 @@ func TestApplyRevertBlockV2(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		checkApplyUpdate(t, cs, au)
-		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedSFEs, spentSFEs)
+		checkUpdateElements(t, au, addedBIGEs, spentBIGEs, addedBFEs, spentBFEs)
 	}
 }
 
-func TestSiafunds(t *testing.T) {
+func TestBigfunds(t *testing.T) {
 	n, genesisBlock := testnet()
 	n.HardforkV2.AllowHeight = 1
 	n.HardforkV2.RequireHeight = 2
@@ -1143,13 +1143,13 @@ func TestSiafunds(t *testing.T) {
 
 	giftAddress := types.StandardAddress(key.PublicKey())
 	giftAmountBIG := types.BigFiles(100e3)
-	giftAmountSF := uint64(1000)
+	giftAmountBF := uint64(1000)
 	giftTxn := types.Transaction{
 		BigFileOutputs: []types.BigFileOutput{
 			{Address: giftAddress, Value: giftAmountBIG},
 		},
-		SiafundOutputs: []types.SiafundOutput{
-			{Address: giftAddress, Value: giftAmountSF},
+		BigfundOutputs: []types.BigfundOutput{
+			{Address: giftAddress, Value: giftAmountBF},
 		},
 	}
 	genesisBlock.Transactions = []types.Transaction{giftTxn}
@@ -1157,7 +1157,7 @@ func TestSiafunds(t *testing.T) {
 		Transactions: []types.V2Transaction{{
 			FileContracts: []types.V2FileContract{{
 				RenterOutput: types.BigFileOutput{
-					Value: types.BigFiles(1000), // ensure initial SiafundTaxRevenue is not 0
+					Value: types.BigFiles(1000), // ensure initial BigfundTaxRevenue is not 0
 				},
 			}},
 		}},
@@ -1171,8 +1171,8 @@ func TestSiafunds(t *testing.T) {
 				Signatures: []types.Signature{key.SignHash(cs.InputSigHash(*txn))},
 			}
 		}
-		for i := range txn.SiafundInputs {
-			txn.SiafundInputs[i].SatisfiedPolicy = types.SatisfiedPolicy{
+		for i := range txn.BigfundInputs {
+			txn.BigfundInputs[i].SatisfiedPolicy = types.SatisfiedPolicy{
 				Policy:     types.PolicyPublicKey(key.PublicKey()),
 				Signatures: []types.Signature{key.SignHash(cs.InputSigHash(*txn))},
 			}
@@ -1205,23 +1205,23 @@ func TestSiafunds(t *testing.T) {
 		return
 	}
 
-	// roundtrip SF output, to reset its ClaimStart
-	sfoid := giftTxn.SiafundOutputID(0)
+	// roundtrip BF output, to reset its ClaimStart
+	bfoid := giftTxn.BigfundOutputID(0)
 	txn := types.V2Transaction{
-		SiafundInputs: []types.V2SiafundInput{{
-			Parent:       db.sfes[sfoid].Copy(),
+		BigfundInputs: []types.V2BigfundInput{{
+			Parent:       db.bfes[bfoid].Copy(),
 			ClaimAddress: giftAddress,
 		}},
-		SiafundOutputs: []types.SiafundOutput{{
+		BigfundOutputs: []types.BigfundOutput{{
 			Address: giftAddress,
-			Value:   giftAmountSF,
+			Value:   giftAmountBF,
 		}},
 	}
 	signTxn(cs, &txn)
 	if _, err := mineTxns(nil, []types.V2Transaction{txn}); err != nil {
 		t.Fatal(err)
 	}
-	sfoid = txn.SiafundOutputID(txn.ID(), 0)
+	bfoid = txn.BigfundOutputID(txn.ID(), 0)
 
 	fc := types.V2FileContract{
 		ProofHeight:      20,
@@ -1248,20 +1248,20 @@ func TestSiafunds(t *testing.T) {
 	if _, err := mineTxns(nil, []types.V2Transaction{txn}); err != nil {
 		t.Fatal(err)
 	}
-	// siafund revenue should have increased
-	if cs.SiafundTaxRevenue != prev.SiafundTaxRevenue.Add(cs.V2FileContractTax(fc)) {
-		t.Fatalf("expected %v siafund revenue, got %v", prev.SiafundTaxRevenue.Add(cs.V2FileContractTax(fc)), cs.SiafundTaxRevenue)
+	// bigfund revenue should have increased
+	if cs.BigfundTaxRevenue != prev.BigfundTaxRevenue.Add(cs.V2FileContractTax(fc)) {
+		t.Fatalf("expected %v bigfund revenue, got %v", prev.BigfundTaxRevenue.Add(cs.V2FileContractTax(fc)), cs.BigfundTaxRevenue)
 	}
 
-	// make a siafund claim
+	// make a bigfund claim
 	txn = types.V2Transaction{
-		SiafundInputs: []types.V2SiafundInput{{
-			Parent:       db.sfes[sfoid].Copy(),
+		BigfundInputs: []types.V2BigfundInput{{
+			Parent:       db.bfes[bfoid].Copy(),
 			ClaimAddress: giftAddress,
 		}},
-		SiafundOutputs: []types.SiafundOutput{{
+		BigfundOutputs: []types.BigfundOutput{{
 			Address: giftAddress,
-			Value:   giftAmountSF,
+			Value:   giftAmountBF,
 		}},
 	}
 	signTxn(cs, &txn)
@@ -1269,24 +1269,24 @@ func TestSiafunds(t *testing.T) {
 	if au, err := mineTxns(nil, []types.V2Transaction{txn}); err != nil {
 		t.Fatal(err)
 	} else {
-		// siafund revenue should be unchanged
-		if cs.SiafundTaxRevenue != prev.SiafundTaxRevenue {
-			t.Fatalf("expected %v siafund revenue, got %v", prev.SiafundTaxRevenue, cs.SiafundTaxRevenue)
+		// bigfund revenue should be unchanged
+		if cs.BigfundTaxRevenue != prev.BigfundTaxRevenue {
+			t.Fatalf("expected %v bigfund revenue, got %v", prev.BigfundTaxRevenue, cs.BigfundTaxRevenue)
 		}
-		// should have received a timelocked siafund claim output
+		// should have received a timelocked bigfund claim output
 		var claimOutput *types.BigFileElement
 		for _, bige := range au.BigFileElementDiffs() {
-			if bige.BigFileElement.ID == txn.SiafundInputs[0].Parent.ID.V2ClaimOutputID() {
+			if bige.BigFileElement.ID == txn.BigfundInputs[0].Parent.ID.V2ClaimOutputID() {
 				claimOutput = &bige.BigFileElement
 				break
 			}
 		}
 		if claimOutput == nil {
-			t.Fatal("expected siafund claim output")
+			t.Fatal("expected bigfund claim output")
 		} else if claimOutput.MaturityHeight != cs.MaturityHeight()-1 {
-			t.Fatalf("expected siafund claim output to mature at height %v, got %v", cs.MaturityHeight()-1, claimOutput.MaturityHeight)
-		} else if exp := cs.V2FileContractTax(fc).Div64(cs.SiafundCount() / giftAmountSF); claimOutput.BigFileOutput.Value != exp {
-			t.Fatalf("expected siafund claim output value %v, got %v", exp, claimOutput.BigFileOutput.Value)
+			t.Fatalf("expected bigfund claim output to mature at height %v, got %v", cs.MaturityHeight()-1, claimOutput.MaturityHeight)
+		} else if exp := cs.V2FileContractTax(fc).Div64(cs.BigfundCount() / giftAmountBF); claimOutput.BigFileOutput.Value != exp {
+			t.Fatalf("expected bigfund claim output value %v, got %v", exp, claimOutput.BigFileOutput.Value)
 		}
 	}
 }

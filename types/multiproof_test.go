@@ -29,7 +29,7 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 				// desirable; otherwise they'll be contiguous and we'll end up
 				// with an uncharacteristically-small multiproof
 				BigFileOutputs: make([]types.BigFileOutput, numTxns*numElems),
-				SiafundOutputs: make([]types.SiafundOutput, numTxns*numElems),
+				BigfundOutputs: make([]types.BigfundOutput, numTxns*numElems),
 				FileContracts:  make([]types.V2FileContract, numTxns*numElems),
 			}},
 		},
@@ -40,9 +40,9 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 	for i := range biges {
 		biges[i] = cau.BigFileElementDiffs()[i].BigFileElement.Copy()
 	}
-	sfes := make([]types.SiafundElement, len(cau.SiafundElementDiffs()))
-	for i := range sfes {
-		sfes[i] = cau.SiafundElementDiffs()[i].SiafundElement.Copy()
+	bfes := make([]types.BigfundElement, len(cau.BigfundElementDiffs()))
+	for i := range bfes {
+		bfes[i] = cau.BigfundElementDiffs()[i].BigfundElement.Copy()
 	}
 	fces := make([]types.V2FileContractElement, len(cau.V2FileContractElementDiffs()))
 	for i := range fces {
@@ -52,7 +52,7 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 	// select randomly
 	rng := frand.NewCustom(make([]byte, 32), 1024, 12)
 	rng.Shuffle(len(biges), reflect.Swapper(biges))
-	rng.Shuffle(len(sfes), reflect.Swapper(sfes))
+	rng.Shuffle(len(bfes), reflect.Swapper(bfes))
 	rng.Shuffle(len(fces), reflect.Swapper(fces))
 
 	// use the elements in fake txns
@@ -68,10 +68,10 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 					SatisfiedPolicy: sp,
 				}), biges[1:]
 			case 1:
-				txn.SiafundInputs, sfes = append(txn.SiafundInputs, types.V2SiafundInput{
-					Parent:          sfes[0].Copy(),
+				txn.BigfundInputs, bfes = append(txn.BigfundInputs, types.V2BigfundInput{
+					Parent:          bfes[0].Copy(),
 					SatisfiedPolicy: sp,
-				}), sfes[1:]
+				}), bfes[1:]
 			case 2:
 				txn.FileContractRevisions, fces = append(txn.FileContractRevisions, types.V2FileContractRevision{
 					Parent: fces[0].Copy(),

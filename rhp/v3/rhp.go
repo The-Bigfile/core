@@ -1,4 +1,4 @@
-// Package rhp implements the Sia renter-host protocol, version 3.
+// Package rhp implements the Bigfile renter-host protocol, version 3.
 package rhp
 
 import (
