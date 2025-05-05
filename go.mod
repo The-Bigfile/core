@@ -6,8 +6,8 @@ toolchain go1.23.2
 
 require (
 	go.thebigfile.com/mux v0.0.1
-	golang.org/x/crypto v0.37.0
-	golang.org/x/sys v0.32.0
+	golang.org/x/crypto v0.38.0
+	golang.org/x/sys v0.33.0
 	lukechampine.com/frand v1.5.1
 )
 
