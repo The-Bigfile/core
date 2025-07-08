@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"go.sia.tech/core/blake2b"
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/blake2b"
+	"go.thebigfile.com/core/types"
 )
 
 const (

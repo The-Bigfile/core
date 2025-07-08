@@ -1,7 +1,7 @@
 package rhp
 
 import (
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/types"
 )
 
 type (

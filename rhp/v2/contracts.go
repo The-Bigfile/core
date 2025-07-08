@@ -3,8 +3,8 @@ package rhp
 import (
 	"math/bits"
 
-	"go.sia.tech/core/consensus"
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/consensus"
+	"go.thebigfile.com/core/types"
 )
 
 // SectorSize is the size of one sector in bytes.

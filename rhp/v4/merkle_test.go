@@ -4,7 +4,7 @@ import (
 	"math/bits"
 	"testing"
 
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/types"
 	"golang.org/x/crypto/blake2b"
 	"lukechampine.com/frand"
 )

@@ -7,8 +7,8 @@ import (
 	"io"
 	"time"
 
-	"go.sia.tech/core/consensus"
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/consensus"
+	"go.thebigfile.com/core/types"
 )
 
 const (

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"go.sia.tech/core/consensus"
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/consensus"
+	"go.thebigfile.com/core/types"
 )
 
 func withV1Encoder(w io.Writer, fn func(*types.Encoder)) error {

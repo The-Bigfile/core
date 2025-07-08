@@ -18,7 +18,7 @@ func run(pass *analysis.Pass) (any, error) {
 			return
 		}
 		if named, ok := pass.TypesInfo.TypeOf(e).(*types.Named); ok {
-			if obj := named.Obj(); obj.Pkg() != nil && obj.Pkg().Path() == "go.sia.tech/core/types" {
+			if obj := named.Obj(); obj.Pkg() != nil && obj.Pkg().Path() == "go.thebigfile.com/core/types" {
 				switch name := obj.Name(); name {
 				case "StateElement", "ChainIndexElement", "SiacoinElement", "SiafundElement",
 					"FileContractElement", "V2FileContractElement", "AttestationElement":

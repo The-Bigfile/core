@@ -1,7 +1,7 @@
 package rhp
 
 import (
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/types"
 )
 
 // A ProtocolObject is an object that can be serialized for transport in the

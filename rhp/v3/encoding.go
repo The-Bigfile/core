@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/types"
 )
 
 // EncodeTo implements ProtocolObject.

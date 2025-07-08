@@ -3,7 +3,7 @@ package rhp
 import (
 	"io"
 
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/types"
 )
 
 func withEncoder(w io.Writer, fn func(*types.Encoder)) error {

@@ -4,9 +4,9 @@ package rhp
 import (
 	"time"
 
-	"go.sia.tech/core/consensus"
-	rhpv2 "go.sia.tech/core/rhp/v2"
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/consensus"
+	rhpv2 "go.thebigfile.com/core/rhp/v2"
+	"go.thebigfile.com/core/types"
 	"lukechampine.com/frand"
 )
 

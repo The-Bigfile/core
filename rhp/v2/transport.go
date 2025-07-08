@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/types"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/chacha20poly1305"

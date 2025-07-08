@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/types"
 	"lukechampine.com/frand"
 )
 

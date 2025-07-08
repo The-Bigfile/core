@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/types"
 )
 
 // Validate checks the host prices for validity. It returns an error if the

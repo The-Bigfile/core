@@ -4,8 +4,8 @@ import (
 	"errors"
 	"math/bits"
 
-	"go.sia.tech/core/consensus"
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/consensus"
+	"go.thebigfile.com/core/types"
 )
 
 // ContractRenewalCost returns the cost of renewing a contract for the renter.

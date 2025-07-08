@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"go.sia.tech/core/types"
-	"go.sia.tech/mux"
+	"go.thebigfile.com/core/types"
+	"go.thebigfile.com/mux"
 	"lukechampine.com/frand"
 )
 

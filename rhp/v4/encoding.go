@@ -3,7 +3,7 @@ package rhp
 import (
 	"bytes"
 
-	"go.sia.tech/core/types"
+	"go.thebigfile.com/core/types"
 )
 
 // EncodeTo implements types.EncoderTo.
