@@ -3,10 +3,10 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - dev
 
 jobs:
   test:
-    uses: SiaFoundation/workflows/.github/workflows/go-test.yml@master
+    uses: The-Bigfile/workflows/.github/workflows/go-test.yml@dev
     with:
       try-build: false
