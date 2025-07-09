@@ -10,5 +10,10 @@ on:
 
 jobs:
   add-to-project:
-    uses: The-Bigfile/workflows/.github/workflows/project-add.yml@dev
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Geçici adım
+        run: echo 'Bu workflow şu an devre dışı, ileride düzenlenecek.'
+    # uses: The-Bigfile/workflows/.github/workflows/project-add.yml@dev
+    # secrets: inherit
+    # Geçici olarak devre dışı bırakıldı, ileride tekrar düzenlenecek

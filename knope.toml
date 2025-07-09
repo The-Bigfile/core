@@ -34,7 +34,7 @@ command = "git push --force --set-upstream origin release"
 
 [[workflows.steps]]
 type = "CreatePullRequest"
-base = "master"
+base = "dev"
 
 [workflows.steps.title]
 template = "chore: prepare release $version"
@@ -51,5 +51,5 @@ name = "release"
 type = "Release"
 
 [github]
-owner = "SiaFoundation"
+owner = "The-Bigfile"
 repo = "core"
