@@ -1,8 +1,7 @@
-name: Prepare Release (DISABLED)
+name: Prepare Release
 on:
-  # push:
-  #   branches: [dev]
-  workflow_dispatch: # Sadece manuel tetikleme
+  push:
+    branches: [dev]
 
 permissions:
   contents: write
