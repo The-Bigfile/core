@@ -1,4 +1,4 @@
-module go.thebigfile.com/core // v1.0.8
+module go.thebigfile.com/core // v1.0.9
 
 go 1.23.1
 
