@@ -48,13 +48,13 @@ func PrepareContractFormation(renterPubKey types.PublicKey, hostKey types.Public
 		Payout:         payout,
 		UnlockHash:     uc.UnlockHash(),
 		RevisionNumber: 0,
-		ValidProofOutputs: []types.SiacoinOutput{
+		ValidProofOutputs: []types.BigfileOutput{
 			// outputs need to account for tax
 			{Value: renterPayout, Address: refundAddr},
 			// collateral is returned to host
 			{Value: hostPayout, Address: host.Address},
 		},
-		MissedProofOutputs: []types.SiacoinOutput{
+		MissedProofOutputs: []types.BigfileOutput{
 			// same as above
 			{Value: renterPayout, Address: refundAddr},
 			// same as above
@@ -122,11 +122,11 @@ func PrepareContractRenewal(currentRevision types.FileContractRevision, renterAd
 		Payout:         taxAdjustedPayout(renterPayout.Add(hostValidPayout)),
 		UnlockHash:     currentRevision.UnlockHash,
 		RevisionNumber: 0,
-		ValidProofOutputs: []types.SiacoinOutput{
+		ValidProofOutputs: []types.BigfileOutput{
 			{Value: renterPayout, Address: renterAddress},
 			{Value: hostValidPayout, Address: host.Address},
 		},
-		MissedProofOutputs: []types.SiacoinOutput{
+		MissedProofOutputs: []types.BigfileOutput{
 			{Value: renterPayout, Address: renterAddress},
 			{Value: hostMissedPayout, Address: host.Address},
 			{Value: voidMissedPayout, Address: types.Address{}},
@@ -180,26 +180,26 @@ func CalculateHostPayouts(fc types.FileContract, newCollateral types.Currency, s
 //	∴  payout = (renterPayout + hostPayout) / (1 - tax)
 //
 // This would work if 'tax' were a simple fraction, but because the tax must
-// be evenly distributed among siafund holders, 'tax' is actually a function
+// be evenly distributed among bigfund holders, 'tax' is actually a function
 // that multiplies by a fraction and then rounds down to the nearest multiple
-// of the siafund count. Thus, when inverting the function, we have to make an
+// of the bigfund count. Thus, when inverting the function, we have to make an
 // initial guess and then fix the rounding error.
 func taxAdjustedPayout(target types.Currency) types.Currency {
 	// compute initial guess as target * (1 / 1-tax); since this does not take
-	// the siafund rounding into account, the guess will be up to
-	// types.SiafundCount greater than the actual payout value.
+	// the bigfund rounding into account, the guess will be up to
+	// types.BigfundCount greater than the actual payout value.
 	guess := target.Mul64(1000).Div64(961)
 
 	// now, adjust the guess to remove the rounding error. We know that:
 	//
-	//   (target % types.SiafundCount) == (payout % types.SiafundCount)
+	//   (target % types.BigfundCount) == (payout % types.BigfundCount)
 	//
 	// therefore, we can simply adjust the guess to have this remainder as
 	// well. The only wrinkle is that, since we know guess >= payout, if the
 	// guess remainder is smaller than the target remainder, we must subtract
-	// an extra types.SiafundCount.
+	// an extra types.BigfundCount.
 	//
-	// for example, if target = 87654321 and types.SiafundCount = 10000, then:
+	// for example, if target = 87654321 and types.BigfundCount = 10000, then:
 	//
 	//   initial_guess  = 87654321 * (1 / (1 - tax))
 	//                  = 91211572
@@ -216,11 +216,11 @@ func taxAdjustedPayout(target types.Currency) types.Currency {
 		}
 		return types.NewCurrency64(r)
 	}
-	sfc := (consensus.State{}).SiafundCount()
-	tm := mod64(target, sfc)
-	gm := mod64(guess, sfc)
+	bfc := (consensus.State{}).BigfundCount()
+	tm := mod64(target, bfc)
+	gm := mod64(guess, bfc)
 	if gm.Cmp(tm) < 0 {
-		guess = guess.Sub(types.NewCurrency64(sfc))
+		guess = guess.Sub(types.NewCurrency64(bfc))
 	}
 	return guess.Add(tm).Sub(gm)
 }

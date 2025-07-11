@@ -290,9 +290,9 @@ func TestCurrencyMul(t *testing.T) {
 			NewCurrency(0, math.MaxUint64),
 		},
 		{
-			Siacoins(30),
+			Bigfiles(30),
 			NewCurrency(50, 0),
-			Siacoins(1500),
+			Bigfiles(1500),
 		},
 		{
 			NewCurrency(math.MaxUint64, 0),
@@ -428,9 +428,9 @@ func TestCurrencyMul64(t *testing.T) {
 			NewCurrency(0, math.MaxUint64),
 		},
 		{
-			Siacoins(30),
+			Bigfiles(30),
 			50,
-			Siacoins(1500),
+			Bigfiles(1500),
 		},
 		{
 			NewCurrency(math.MaxUint64, 0),
@@ -460,13 +460,13 @@ func TestCurrencyDiv(t *testing.T) {
 			NewCurrency(1, 0),
 		},
 		{
-			Siacoins(156),
+			Bigfiles(156),
 			NewCurrency(2, 0),
-			Siacoins(78),
+			Bigfiles(78),
 		},
 		{
-			Siacoins(300),
-			Siacoins(2),
+			Bigfiles(300),
+			Bigfiles(2),
 			NewCurrency(150, 0),
 		},
 		{
@@ -519,9 +519,9 @@ func TestCurrencyDiv64(t *testing.T) {
 			NewCurrency64(1),
 		},
 		{
-			Siacoins(156),
+			Bigfiles(156),
 			2,
-			Siacoins(78),
+			Bigfiles(78),
 		},
 		{
 			MaxCurrency,
@@ -550,51 +550,51 @@ func TestCurrencyString(t *testing.T) {
 			"10000 H",
 		},
 		{
-			Siacoins(1).Div64(1e12),
+			Bigfiles(1).Div64(1e12),
 			"1 pS",
 		},
 		{
-			Siacoins(1),
+			Bigfiles(1),
 			"1 SC",
 		},
 		{
-			Siacoins(10),
+			Bigfiles(10),
 			"10 SC",
 		},
 		{
-			Siacoins(100),
+			Bigfiles(100),
 			"100 SC",
 		},
 		{
-			Siacoins(1000),
+			Bigfiles(1000),
 			"1 KS",
 		},
 		{
-			Siacoins(1).Mul64(1e12),
+			Bigfiles(1).Mul64(1e12),
 			"1 TS",
 		},
 		{
-			Siacoins(10).Sub(Siacoins(1)),
+			Bigfiles(10).Sub(Bigfiles(1)),
 			"9 SC",
 		},
 		{
-			Siacoins(10).Sub(Siacoins(1).Div64(10)),
+			Bigfiles(10).Sub(Bigfiles(1).Div64(10)),
 			"9.9 SC",
 		},
 		{
-			Siacoins(10).Sub(Siacoins(1).Div64(100)),
+			Bigfiles(10).Sub(Bigfiles(1).Div64(100)),
 			"9.99 SC",
 		},
 		{
-			Siacoins(10).Sub(Siacoins(1).Div64(1000)),
+			Bigfiles(10).Sub(Bigfiles(1).Div64(1000)),
 			"9.999 SC",
 		},
 		{
-			Siacoins(10).Sub(Siacoins(1).Div64(10000)),
+			Bigfiles(10).Sub(Bigfiles(1).Div64(10000)),
 			"9.9999 SC",
 		},
 		{
-			Siacoins(10).Sub(NewCurrency64(1)),
+			Bigfiles(10).Sub(NewCurrency64(1)),
 			"9.999999999999999999999999 SC",
 		},
 		{
@@ -700,27 +700,27 @@ func TestParseCurrency(t *testing.T) {
 		},
 		{
 			"1 SC",
-			Siacoins(1),
+			Bigfiles(1),
 			false,
 		},
 		{
 			"1000 mS",
-			Siacoins(1),
+			Bigfiles(1),
 			false,
 		},
 		{
 			"123 mS",
-			Siacoins(123).Div64(1000),
+			Bigfiles(123).Div64(1000),
 			false,
 		},
 		{
 			"2.000000000000000000000001 SC",
-			Siacoins(2).Add(NewCurrency64(1)),
+			Bigfiles(2).Add(NewCurrency64(1)),
 			false,
 		},
 		{
 			"12.345 GS",
-			Siacoins(12345).Mul64(1e6),
+			Bigfiles(12345).Mul64(1e6),
 			false,
 		},
 		{
@@ -761,10 +761,10 @@ func TestParseCurrency(t *testing.T) {
 
 func TestTransactionJSONMarshalling(t *testing.T) {
 	txn := Transaction{
-		SiacoinOutputs: []SiacoinOutput{
-			{Address: frand.Entropy256(), Value: Siacoins(uint32(frand.Uint64n(math.MaxUint32)))},
+		BigfileOutputs: []BigfileOutput{
+			{Address: frand.Entropy256(), Value: Bigfiles(uint32(frand.Uint64n(math.MaxUint32)))},
 		},
-		SiacoinInputs: []SiacoinInput{
+		BigfileInputs: []BigfileInput{
 			{
 				ParentID: frand.Entropy256(),
 				UnlockConditions: UnlockConditions{
@@ -775,7 +775,7 @@ func TestTransactionJSONMarshalling(t *testing.T) {
 				},
 			},
 		},
-		SiafundInputs: []SiafundInput{
+		BigfundInputs: []BigfundInput{
 			{
 				ParentID: frand.Entropy256(),
 				UnlockConditions: UnlockConditions{
@@ -786,7 +786,7 @@ func TestTransactionJSONMarshalling(t *testing.T) {
 				},
 			},
 		},
-		SiafundOutputs: []SiafundOutput{
+		BigfundOutputs: []BigfundOutput{
 			{Address: frand.Entropy256(), Value: frand.Uint64n(10000)},
 		},
 	}
@@ -804,28 +804,28 @@ func TestTransactionJSONMarshalling(t *testing.T) {
 		t.Fatalf("expected ID %q, got %q", expectedID.String(), txnMap["id"].(string))
 	}
 
-	expectedSiacoinID := txn.SiacoinOutputID(0)
-	siacoinOutputID := txnMap["siacoinOutputs"].([]any)[0].(map[string]any)["id"].(string)
-	if siacoinOutputID != expectedSiacoinID.String() {
-		t.Fatalf("expected siacoin output id  %q, got %q", expectedSiacoinID.String(), siacoinOutputID)
+	expectedBigfileID := txn.BigfileOutputID(0)
+	bigfileOutputID := txnMap["bigfileOutputs"].([]any)[0].(map[string]any)["id"].(string)
+	if bigfileOutputID != expectedBigfileID.String() {
+		t.Fatalf("expected bigfile output id  %q, got %q", expectedBigfileID.String(), bigfileOutputID)
 	}
 
-	expectedSiafundID := txn.SiafundOutputID(0)
-	siafundOutputID := txnMap["siafundOutputs"].([]any)[0].(map[string]any)["id"].(string)
-	if siafundOutputID != expectedSiafundID.String() {
-		t.Fatalf("expected siafund output id %q, got %q", expectedSiafundID.String(), siafundOutputID)
+	expectedBigfundID := txn.BigfundOutputID(0)
+	bigfundOutputID := txnMap["bigfundOutputs"].([]any)[0].(map[string]any)["id"].(string)
+	if bigfundOutputID != expectedBigfundID.String() {
+		t.Fatalf("expected bigfund output id %q, got %q", expectedBigfundID.String(), bigfundOutputID)
 	}
 
-	expectedSiacoinInputAddress := txn.SiacoinInputs[0].UnlockConditions.UnlockHash()
-	siacoinInputAddress := txnMap["siacoinInputs"].([]any)[0].(map[string]any)["address"].(string)
-	if siacoinInputAddress != expectedSiacoinInputAddress.String() {
-		t.Fatalf("expected siacoin input address %q, got %q", expectedSiacoinInputAddress.String(), siacoinInputAddress)
+	expectedBigfileInputAddress := txn.BigfileInputs[0].UnlockConditions.UnlockHash()
+	bigfileInputAddress := txnMap["bigfileInputs"].([]any)[0].(map[string]any)["address"].(string)
+	if bigfileInputAddress != expectedBigfileInputAddress.String() {
+		t.Fatalf("expected bigfile input address %q, got %q", expectedBigfileInputAddress.String(), bigfileInputAddress)
 	}
 
-	expectedSiafundInputAddress := txn.SiafundInputs[0].UnlockConditions.UnlockHash()
-	siafundInputAddress := txnMap["siafundInputs"].([]any)[0].(map[string]any)["address"].(string)
-	if siafundInputAddress != expectedSiafundInputAddress.String() {
-		t.Fatalf("expected siafund input address %q, got %q", expectedSiafundInputAddress.String(), siafundInputAddress)
+	expectedBigfundInputAddress := txn.BigfundInputs[0].UnlockConditions.UnlockHash()
+	bigfundInputAddress := txnMap["bigfundInputs"].([]any)[0].(map[string]any)["address"].(string)
+	if bigfundInputAddress != expectedBigfundInputAddress.String() {
+		t.Fatalf("expected bigfund input address %q, got %q", expectedBigfundInputAddress.String(), bigfundInputAddress)
 	}
 
 	var txn2 Transaction
@@ -833,22 +833,22 @@ func TestTransactionJSONMarshalling(t *testing.T) {
 		t.Fatal(err)
 	} else if txn2.ID() != expectedID {
 		t.Fatalf("expected unmarshalled ID to be %q, got %q", expectedID, txn2.ID())
-	} else if txn2.SiacoinOutputID(0) != expectedSiacoinID {
-		t.Fatalf("expected unmarshalled siacoin output id to be %q, got %q", expectedSiacoinID, txn2.SiacoinOutputID(0))
-	} else if txn2.SiafundOutputID(0) != expectedSiafundID {
-		t.Fatalf("expected unmarshalled siafund output id to be %q, got %q", expectedSiafundID, txn2.SiafundOutputID(0))
-	} else if txn2.SiacoinInputs[0].UnlockConditions.UnlockHash() != expectedSiacoinInputAddress {
-		t.Fatalf("expected unmarshalled siacoin input address to be %q, got %q", expectedSiacoinInputAddress, txn2.SiacoinInputs[0].UnlockConditions.UnlockHash())
-	} else if txn2.SiafundInputs[0].UnlockConditions.UnlockHash() != expectedSiafundInputAddress {
-		t.Fatalf("expected unmarshalled siafund input address to be %q, got %q", expectedSiafundInputAddress, txn2.SiafundInputs[0].UnlockConditions.UnlockHash())
+	} else if txn2.BigfileOutputID(0) != expectedBigfileID {
+		t.Fatalf("expected unmarshalled bigfile output id to be %q, got %q", expectedBigfileID, txn2.BigfileOutputID(0))
+	} else if txn2.BigfundOutputID(0) != expectedBigfundID {
+		t.Fatalf("expected unmarshalled bigfund output id to be %q, got %q", expectedBigfundID, txn2.BigfundOutputID(0))
+	} else if txn2.BigfileInputs[0].UnlockConditions.UnlockHash() != expectedBigfileInputAddress {
+		t.Fatalf("expected unmarshalled bigfile input address to be %q, got %q", expectedBigfileInputAddress, txn2.BigfileInputs[0].UnlockConditions.UnlockHash())
+	} else if txn2.BigfundInputs[0].UnlockConditions.UnlockHash() != expectedBigfundInputAddress {
+		t.Fatalf("expected unmarshalled bigfund input address to be %q, got %q", expectedBigfundInputAddress, txn2.BigfundInputs[0].UnlockConditions.UnlockHash())
 	}
 }
 
 func TestV2TransactionJSONMarshalling(t *testing.T) {
 	txn := V2Transaction{
-		SiacoinInputs: []V2SiacoinInput{
+		BigfileInputs: []V2BigfileInput{
 			{
-				Parent: SiacoinElement{
+				Parent: BigfileElement{
 					ID: frand.Entropy256(),
 					StateElement: StateElement{
 						LeafIndex: frand.Uint64n(math.MaxUint64),
@@ -859,16 +859,16 @@ func TestV2TransactionJSONMarshalling(t *testing.T) {
 				},
 			},
 		},
-		SiacoinOutputs: []SiacoinOutput{
-			{Address: frand.Entropy256(), Value: Siacoins(uint32(frand.Uint64n(math.MaxUint32)))},
+		BigfileOutputs: []BigfileOutput{
+			{Address: frand.Entropy256(), Value: Bigfiles(uint32(frand.Uint64n(math.MaxUint32)))},
 		},
-		SiafundOutputs: []SiafundOutput{
+		BigfundOutputs: []BigfundOutput{
 			{Address: frand.Entropy256(), Value: frand.Uint64n(10000)},
 		},
 	}
 	expectedID := txn.ID()
-	expectedSiacoinID := txn.SiacoinOutputID(expectedID, 0)
-	expectedSiafundID := txn.SiafundOutputID(expectedID, 0)
+	expectedBigfileID := txn.BigfileOutputID(expectedID, 0)
+	expectedBigfundID := txn.BigfundOutputID(expectedID, 0)
 
 	buf, err := json.Marshal(txn)
 	if err != nil {
@@ -882,14 +882,14 @@ func TestV2TransactionJSONMarshalling(t *testing.T) {
 		t.Fatalf("expected ID %q, got %q", expectedID.String(), txnMap["id"].(string))
 	}
 
-	siacoinOutputID := txnMap["siacoinOutputs"].([]any)[0].(map[string]any)["id"].(string)
-	if siacoinOutputID != expectedSiacoinID.String() {
-		t.Fatalf("expected siacoin output id  %q, got %q", expectedSiacoinID.String(), siacoinOutputID)
+	bigfileOutputID := txnMap["bigfileOutputs"].([]any)[0].(map[string]any)["id"].(string)
+	if bigfileOutputID != expectedBigfileID.String() {
+		t.Fatalf("expected bigfile output id  %q, got %q", expectedBigfileID.String(), bigfileOutputID)
 	}
 
-	siafundOutputID := txnMap["siafundOutputs"].([]any)[0].(map[string]any)["id"].(string)
-	if siafundOutputID != expectedSiafundID.String() {
-		t.Fatalf("expected siafund output id %q, got %q", expectedSiafundID.String(), siafundOutputID)
+	bigfundOutputID := txnMap["bigfundOutputs"].([]any)[0].(map[string]any)["id"].(string)
+	if bigfundOutputID != expectedBigfundID.String() {
+		t.Fatalf("expected bigfund output id %q, got %q", expectedBigfundID.String(), bigfundOutputID)
 	}
 
 	var txn2 V2Transaction
@@ -897,10 +897,10 @@ func TestV2TransactionJSONMarshalling(t *testing.T) {
 		t.Fatal(err)
 	} else if txn2.ID() != expectedID {
 		t.Fatalf("expected unmarshalled ID to be %q, got %q", expectedID, txn2.ID())
-	} else if txn2.SiacoinOutputID(txn2.ID(), 0) != expectedSiacoinID {
-		t.Fatalf("expected unmarshalled siacoin output id to be %q, got %q", expectedSiacoinID, txn2.SiacoinOutputID(txn.ID(), 0))
-	} else if txn2.SiafundOutputID(txn2.ID(), 0) != expectedSiafundID {
-		t.Fatalf("expected unmarshalled siafund output id to be %q, got %q", expectedSiafundID, txn2.SiafundOutputID(txn.ID(), 0))
+	} else if txn2.BigfileOutputID(txn2.ID(), 0) != expectedBigfileID {
+		t.Fatalf("expected unmarshalled bigfile output id to be %q, got %q", expectedBigfileID, txn2.BigfileOutputID(txn.ID(), 0))
+	} else if txn2.BigfundOutputID(txn2.ID(), 0) != expectedBigfundID {
+		t.Fatalf("expected unmarshalled bigfund output id to be %q, got %q", expectedBigfundID, txn2.BigfundOutputID(txn.ID(), 0))
 	}
 }
 

@@ -79,15 +79,15 @@ func chainIndexLeaf(e *types.ChainIndexElement) elementLeaf {
 	return elementLeaf{&e.StateElement, elemHash, false}
 }
 
-// siacoinLeaf returns the elementLeaf for a SiacoinElement.
-func siacoinLeaf(e *types.SiacoinElement, spent bool) elementLeaf {
-	elemHash := hashAll("leaf/siacoin", e.ID, types.V2SiacoinOutput(e.SiacoinOutput), e.MaturityHeight)
+// bigfileLeaf returns the elementLeaf for a BigfileElement.
+func bigfileLeaf(e *types.BigfileElement, spent bool) elementLeaf {
+	elemHash := hashAll("leaf/bigfile", e.ID, types.V2BigfileOutput(e.BigfileOutput), e.MaturityHeight)
 	return elementLeaf{&e.StateElement, elemHash, spent}
 }
 
-// siafundLeaf returns the elementLeaf for a SiafundElement.
-func siafundLeaf(e *types.SiafundElement, spent bool) elementLeaf {
-	elemHash := hashAll("leaf/siafund", e.ID, types.V2SiafundOutput(e.SiafundOutput), types.V2Currency(e.ClaimStart))
+// bigfundLeaf returns the elementLeaf for a BigfundElement.
+func bigfundLeaf(e *types.BigfundElement, spent bool) elementLeaf {
+	elemHash := hashAll("leaf/bigfund", e.ID, types.V2BigfundOutput(e.BigfundOutput), types.V2Currency(e.ClaimStart))
 	return elementLeaf{&e.StateElement, elemHash, spent}
 }
 
@@ -191,20 +191,20 @@ func (acc *ElementAccumulator) containsChainIndex(cie types.ChainIndexElement) b
 	return acc.containsLeaf(chainIndexLeaf(&cie))
 }
 
-func (acc *ElementAccumulator) containsUnspentSiacoinElement(sce types.SiacoinElement) bool {
-	return acc.containsLeaf(siacoinLeaf(&sce, false))
+func (acc *ElementAccumulator) containsUnspentBigfileElement(bige types.BigfileElement) bool {
+	return acc.containsLeaf(bigfileLeaf(&bige, false))
 }
 
-func (acc *ElementAccumulator) containsSpentSiacoinElement(sce types.SiacoinElement) bool {
-	return acc.containsLeaf(siacoinLeaf(&sce, true))
+func (acc *ElementAccumulator) containsSpentBigfileElement(bige types.BigfileElement) bool {
+	return acc.containsLeaf(bigfileLeaf(&bige, true))
 }
 
-func (acc *ElementAccumulator) containsUnspentSiafundElement(sfe types.SiafundElement) bool {
-	return acc.containsLeaf(siafundLeaf(&sfe, false))
+func (acc *ElementAccumulator) containsUnspentBigfundElement(bfe types.BigfundElement) bool {
+	return acc.containsLeaf(bigfundLeaf(&bfe, false))
 }
 
-func (acc *ElementAccumulator) containsSpentSiafundElement(sfe types.SiafundElement) bool {
-	return acc.containsLeaf(siafundLeaf(&sfe, true))
+func (acc *ElementAccumulator) containsSpentBigfundElement(bfe types.BigfundElement) bool {
+	return acc.containsLeaf(bigfundLeaf(&bfe, true))
 }
 
 func (acc *ElementAccumulator) containsUnresolvedFileContractElement(fce types.FileContractElement) bool {
@@ -229,11 +229,11 @@ func (acc *ElementAccumulator) ValidateTransactionElements(txn types.V2Transacti
 			}
 		}
 	}
-	for i := range txn.SiacoinInputs {
-		check("siacoin input", siacoinLeaf(&txn.SiacoinInputs[i].Parent, false))
+	for i := range txn.BigfileInputs {
+		check("bigfile input", bigfileLeaf(&txn.BigfileInputs[i].Parent, false))
 	}
-	for i := range txn.SiafundInputs {
-		check("siafund input", siafundLeaf(&txn.SiafundInputs[i].Parent, false))
+	for i := range txn.BigfundInputs {
+		check("bigfund input", bigfundLeaf(&txn.BigfundInputs[i].Parent, false))
 	}
 	for i := range txn.FileContractRevisions {
 		check("file contract revision", v2FileContractLeaf(&txn.FileContractRevisions[i].Parent, nil, false))

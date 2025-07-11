@@ -28,21 +28,21 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 				// NOTE: this creates more elements than necessary, but that's
 				// desirable; otherwise they'll be contiguous and we'll end up
 				// with an uncharacteristically-small multiproof
-				SiacoinOutputs: make([]types.SiacoinOutput, numTxns*numElems),
-				SiafundOutputs: make([]types.SiafundOutput, numTxns*numElems),
+				BigfileOutputs: make([]types.BigfileOutput, numTxns*numElems),
+				BigfundOutputs: make([]types.BigfundOutput, numTxns*numElems),
 				FileContracts:  make([]types.V2FileContract, numTxns*numElems),
 			}},
 		},
 	}
 	// apply the block and extract the created elements
 	cs, cau := consensus.ApplyBlock(cs, b, consensus.V1BlockSupplement{}, time.Time{})
-	sces := make([]types.SiacoinElement, len(cau.SiacoinElementDiffs()))
-	for i := range sces {
-		sces[i] = cau.SiacoinElementDiffs()[i].SiacoinElement.Copy()
+	biges := make([]types.BigfileElement, len(cau.BigfileElementDiffs()))
+	for i := range biges {
+		biges[i] = cau.BigfileElementDiffs()[i].BigfileElement.Copy()
 	}
-	sfes := make([]types.SiafundElement, len(cau.SiafundElementDiffs()))
-	for i := range sfes {
-		sfes[i] = cau.SiafundElementDiffs()[i].SiafundElement.Copy()
+	bfes := make([]types.BigfundElement, len(cau.BigfundElementDiffs()))
+	for i := range bfes {
+		bfes[i] = cau.BigfundElementDiffs()[i].BigfundElement.Copy()
 	}
 	fces := make([]types.V2FileContractElement, len(cau.V2FileContractElementDiffs()))
 	for i := range fces {
@@ -51,8 +51,8 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 
 	// select randomly
 	rng := frand.NewCustom(make([]byte, 32), 1024, 12)
-	rng.Shuffle(len(sces), reflect.Swapper(sces))
-	rng.Shuffle(len(sfes), reflect.Swapper(sfes))
+	rng.Shuffle(len(biges), reflect.Swapper(biges))
+	rng.Shuffle(len(bfes), reflect.Swapper(bfes))
 	rng.Shuffle(len(fces), reflect.Swapper(fces))
 
 	// use the elements in fake txns
@@ -63,15 +63,15 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 		for j := 0; j < numElems; j++ {
 			switch j % 4 {
 			case 0:
-				txn.SiacoinInputs, sces = append(txn.SiacoinInputs, types.V2SiacoinInput{
-					Parent:          sces[0].Copy(),
+				txn.BigfileInputs, biges = append(txn.BigfileInputs, types.V2BigfileInput{
+					Parent:          biges[0].Copy(),
 					SatisfiedPolicy: sp,
-				}), sces[1:]
+				}), biges[1:]
 			case 1:
-				txn.SiafundInputs, sfes = append(txn.SiafundInputs, types.V2SiafundInput{
-					Parent:          sfes[0].Copy(),
+				txn.BigfundInputs, bfes = append(txn.BigfundInputs, types.V2BigfundInput{
+					Parent:          bfes[0].Copy(),
 					SatisfiedPolicy: sp,
-				}), sfes[1:]
+				}), bfes[1:]
 			case 2:
 				txn.FileContractRevisions, fces = append(txn.FileContractRevisions, types.V2FileContractRevision{
 					Parent: fces[0].Copy(),
@@ -84,12 +84,12 @@ func multiproofTxns(numTxns int, numElems int) []types.V2Transaction {
 			}
 		}
 	}
-	// make every 5th siacoin input ephemeral
+	// make every 5th bigfile input ephemeral
 	n := 0
 	for i := range txns {
-		for j := range txns[i].SiacoinInputs {
+		for j := range txns[i].BigfileInputs {
 			if (n+1)%5 == 0 {
-				txns[i].SiacoinInputs[j].Parent.StateElement = types.StateElement{LeafIndex: types.UnassignedLeafIndex}
+				txns[i].BigfileInputs[j].Parent.StateElement = types.StateElement{LeafIndex: types.UnassignedLeafIndex}
 			}
 			n++
 		}

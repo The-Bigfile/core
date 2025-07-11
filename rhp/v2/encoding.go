@@ -97,14 +97,14 @@ func (r *RPCFormContractRequest) DecodeFrom(d *types.Decoder) {
 func (r *RPCFormContractAdditions) EncodeTo(e *types.Encoder) {
 	types.EncodeSlice(e, r.Parents)
 	types.EncodeSlice(e, r.Inputs)
-	types.EncodeSliceCast[types.V1SiacoinOutput](e, r.Outputs)
+	types.EncodeSliceCast[types.V1BigfileOutput](e, r.Outputs)
 }
 
 // DecodeFrom implements ProtocolObject.
 func (r *RPCFormContractAdditions) DecodeFrom(d *types.Decoder) {
 	types.DecodeSlice(d, &r.Parents)
 	types.DecodeSlice(d, &r.Inputs)
-	types.DecodeSliceCast[types.V1SiacoinOutput](d, &r.Outputs)
+	types.DecodeSliceCast[types.V1BigfileOutput](d, &r.Outputs)
 }
 
 // EncodeTo implements ProtocolObject.

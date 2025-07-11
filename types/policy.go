@@ -83,7 +83,7 @@ func AnyoneCanSpend() SpendPolicy {
 	return PolicyThreshold(0, nil)
 }
 
-// PolicyTypeUnlockConditions reproduces the requirements imposed by Sia's
+// PolicyTypeUnlockConditions reproduces the requirements imposed by Bigfile's
 // original "UnlockConditions" type. It exists for compatibility purposes and
 // should not be used to construct new policies.
 type PolicyTypeUnlockConditions UnlockConditions

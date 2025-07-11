@@ -8,12 +8,12 @@ import (
 	"go.thebigfile.com/core/blake2b"
 )
 
-// HashBytes computes the hash of b using Sia's hash function.
+// HashBytes computes the hash of b using Bigfile's hash function.
 func HashBytes(b []byte) Hash256 {
 	return blake2b.Sum256(b)
 }
 
-// A Hasher streams objects into an instance of Sia's hash function.
+// A Hasher streams objects into an instance of Bigfile's hash function.
 type Hasher struct {
 	h   hash.Hash
 	sum Hash256 // prevent Sum from allocating
@@ -28,7 +28,7 @@ func (h *Hasher) Reset() {
 
 // WriteDistinguisher writes a distinguisher prefix to the encoder.
 func (h *Hasher) WriteDistinguisher(p string) {
-	h.E.Write([]byte("sia/" + p + "|"))
+	h.E.Write([]byte("bigfile/" + p + "|"))
 }
 
 // Sum returns the digest of the objects written to the Hasher.
@@ -84,7 +84,7 @@ const leafHashPrefix uint8 = 0 // from RFC 6962
 // equivalent to PolicyPublicKey(pk).Address().
 func StandardAddress(pk PublicKey) Address {
 	buf := make([]byte, 12+1+1+len(pk))
-	copy(buf, "sia/address|")
+	copy(buf, "bigfile/address|")
 	buf[12] = 1 // version
 	buf[13] = 3 // opPublicKey
 	copy(buf[14:], pk[:])
@@ -153,14 +153,14 @@ func unlockConditionsRoot(uc UnlockConditions) Address {
 	return acc.Root()
 }
 
-func blockMerkleRoot(minerPayouts []SiacoinOutput, txns []Transaction) Hash256 {
+func blockMerkleRoot(minerPayouts []BigfileOutput, txns []Transaction) Hash256 {
 	h := hasherPool.Get().(*Hasher)
 	defer hasherPool.Put(h)
 	var acc blake2b.Accumulator
 	for _, mp := range minerPayouts {
 		h.Reset()
 		h.E.WriteUint8(leafHashPrefix)
-		V1SiacoinOutput(mp).EncodeTo(h.E)
+		V1BigfileOutput(mp).EncodeTo(h.E)
 		acc.AddLeaf(h.Sum())
 	}
 	for _, txn := range txns {

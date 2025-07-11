@@ -18,8 +18,8 @@ var (
 	// MaxCurrency represents the largest possible value for the Currency type.
 	MaxCurrency = NewCurrency(math.MaxUint64, math.MaxUint64)
 
-	// HastingsPerSiacoin is the number of hastings (base units) in a siacoin.
-	HastingsPerSiacoin = NewCurrency(2003764205206896640, 54210) // 10^24
+	// HastingsPerBigfile is the number of hastings (base units) in a bigfile.
+	HastingsPerBigfile = NewCurrency(2003764205206896640, 54210) // 10^24
 )
 
 // Currency represents a quantity of hastings as an unsigned 128-bit number.
@@ -37,8 +37,8 @@ func NewCurrency64(c uint64) Currency {
 	return Currency{c, 0}
 }
 
-// Siacoins returns a Currency value representing n siacoins.
-func Siacoins(n uint32) Currency { return HastingsPerSiacoin.Mul64(uint64(n)) }
+// Bigfiles returns a Currency value representing n bigfiles.
+func Bigfiles(n uint32) Currency { return HastingsPerBigfile.Mul64(uint64(n)) }
 
 // IsZero returns true if c == 0.
 func (c Currency) IsZero() bool {
@@ -234,7 +234,7 @@ func (c Currency) ExactString() string {
 // String returns the base-10 representation of c with a unit suffix.
 func (c Currency) String() string {
 	if c.IsZero() {
-		return "0 SC"
+		return "0 BIG"
 	}
 	s := c.Big().String()
 	u := (len(s) - 1) / 3
@@ -247,14 +247,14 @@ func (c Currency) String() string {
 	if frac := strings.TrimRight(s[len(s)-u*3:], "0"); len(frac) > 0 {
 		mant += "." + frac
 	}
-	unit := []string{"pS", "nS", "uS", "mS", "SC", "KS", "MS", "GS", "TS"}[u-4]
+	unit := []string{"pB", "nB", "uB", "mB", "BIG", "KB", "MB", "GB", "TB"}[u-4]
 	return mant + " " + unit
 }
 
-// Siacoins converts c to a floating-point number of siacoins. This may result
+// Bigfiles converts c to a floating-point number of bigfiles. This may result
 // in a loss of precision.
-func (c Currency) Siacoins() float64 {
-	f, _ := new(big.Rat).SetFrac(c.Big(), HastingsPerSiacoin.Big()).Float64()
+func (c Currency) Bigfiles() float64 {
+	f, _ := new(big.Rat).SetFrac(c.Big(), HastingsPerBigfile.Big()).Float64()
 	return f
 }
 
@@ -301,15 +301,15 @@ func expToUnit(exp int64) *big.Rat {
 }
 
 var currencyUnits = map[string]*big.Rat{
-	"pS": expToUnit(12),
-	"nS": expToUnit(15),
-	"uS": expToUnit(18),
-	"mS": expToUnit(21),
-	"SC": expToUnit(24),
-	"KS": expToUnit(27),
-	"MS": expToUnit(30),
-	"GS": expToUnit(33),
-	"TS": expToUnit(36),
+	"pB": expToUnit(12),
+	"nB": expToUnit(15),
+	"uB": expToUnit(18),
+	"mB": expToUnit(21),
+	"BIG": expToUnit(24),
+	"KB": expToUnit(27),
+	"MB": expToUnit(30),
+	"GB": expToUnit(33),
+	"TB": expToUnit(36),
 }
 
 // ParseCurrency parses s as a Currency value. The format of s should match one

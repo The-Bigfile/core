@@ -29,12 +29,12 @@ func chainIndexLeaf(e *ChainIndexElement) elementLeaf {
 	return elementLeaf{&e.StateElement, hashAll("leaf/chainindex", e.ID, e.ChainIndex)}
 }
 
-func siacoinLeaf(e *SiacoinElement) elementLeaf {
-	return elementLeaf{&e.StateElement, hashAll("leaf/siacoin", e.ID, V2SiacoinOutput(e.SiacoinOutput), e.MaturityHeight)}
+func bigfileLeaf(e *BigfileElement) elementLeaf {
+	return elementLeaf{&e.StateElement, hashAll("leaf/bigfile", e.ID, V2BigfileOutput(e.BigfileOutput), e.MaturityHeight)}
 }
 
-func siafundLeaf(e *SiafundElement) elementLeaf {
-	return elementLeaf{&e.StateElement, hashAll("leaf/siafund", e.ID, V2SiafundOutput(e.SiafundOutput), V2Currency(e.ClaimStart))}
+func bigfundLeaf(e *BigfundElement) elementLeaf {
+	return elementLeaf{&e.StateElement, hashAll("leaf/bigfund", e.ID, V2BigfundOutput(e.BigfundOutput), V2Currency(e.ClaimStart))}
 }
 
 func v2FileContractLeaf(e *V2FileContractElement) elementLeaf {
@@ -53,11 +53,11 @@ func forEachElementLeaf(txns []V2Transaction, fn func(l elementLeaf)) {
 		}
 	}
 	for _, txn := range txns {
-		for i := range txn.SiacoinInputs {
-			visit(siacoinLeaf(&txn.SiacoinInputs[i].Parent))
+		for i := range txn.BigfileInputs {
+			visit(bigfileLeaf(&txn.BigfileInputs[i].Parent))
 		}
-		for i := range txn.SiafundInputs {
-			visit(siafundLeaf(&txn.SiafundInputs[i].Parent))
+		for i := range txn.BigfundInputs {
+			visit(bigfundLeaf(&txn.BigfundInputs[i].Parent))
 		}
 		for i := range txn.FileContractRevisions {
 			visit(v2FileContractLeaf(&txn.FileContractRevisions[i].Parent))

@@ -1,4 +1,4 @@
-// Package rhp implements the Sia renter-host protocol, version 2.
+// Package rhp implements the Bigfile renter-host protocol, version 2.
 package rhp
 
 import (
@@ -75,7 +75,7 @@ type HostSettings struct {
 	RevisionNumber             uint64         `json:"revisionnumber"`
 	Version                    string         `json:"version"`
 	Release                    string         `json:"release"`
-	SiaMuxPort                 string         `json:"siamuxport"`
+	BigfileMuxPort             string         `json:"bigfilemuxport"`
 }
 
 // MarshalJSON encodes the HostSettings as JSON. The Address field is overridden
@@ -105,18 +105,18 @@ func (hs HostSettings) MarshalJSON() ([]byte, error) {
 		"revisionnumber":             hs.RevisionNumber,
 		"version":                    hs.Version,
 		"release":                    hs.Release,
-		"siamuxport":                 hs.SiaMuxPort,
+		"bigfilemuxport":             hs.BigfileMuxPort,
 	})
 }
 
-// SiamuxAddr is a helper which returns an address that can be used to connect
-// to the host's siamux.
-func (hs HostSettings) SiamuxAddr() string {
+// BigfilemuxAddr is a helper which returns an address that can be used to connect
+// to the host's bigmux.
+func (hs HostSettings) BigfilemuxAddr() string {
 	host, _, err := net.SplitHostPort(hs.NetAddress)
 	if err != nil || host == "" {
 		return ""
 	}
-	return net.JoinHostPort(host, hs.SiaMuxPort)
+	return net.JoinHostPort(host, hs.BigfileMuxPort)
 }
 
 // RPC IDs
@@ -187,8 +187,8 @@ type (
 	// outputs added by the host when negotiating a file contract.
 	RPCFormContractAdditions struct {
 		Parents []types.Transaction
-		Inputs  []types.SiacoinInput
-		Outputs []types.SiacoinOutput
+		Inputs  []types.BigfileInput
+		Outputs []types.BigfileOutput
 	}
 
 	// RPCFormContractSignatures contains the signatures for a contract

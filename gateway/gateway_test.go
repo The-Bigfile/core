@@ -13,22 +13,22 @@ func TestBlockOutline(t *testing.T) {
 	b := types.Block{
 		ParentID:  cs.Index.ID,
 		Timestamp: types.CurrentTimestamp(),
-		MinerPayouts: []types.SiacoinOutput{{
+		MinerPayouts: []types.BigfileOutput{{
 			Value:   cs.BlockReward(),
 			Address: types.Address(frand.Entropy256()),
 		}},
 		Transactions: []types.Transaction{{
-			SiacoinInputs:  []types.SiacoinInput{{}},
-			SiacoinOutputs: []types.SiacoinOutput{{Value: types.Siacoins(1)}},
+			BigfileInputs:  []types.BigfileInput{{}},
+			BigfileOutputs: []types.BigfileOutput{{Value: types.Bigfiles(1)}},
 		}},
 		V2: &types.V2BlockData{
 			Height: 1,
 			Transactions: []types.V2Transaction{{
-				SiacoinInputs: []types.V2SiacoinInput{{
-					Parent:          types.SiacoinElement{StateElement: types.StateElement{MerkleProof: make([]types.Hash256, 10)}},
+				BigfileInputs: []types.V2BigfileInput{{
+					Parent:          types.BigfileElement{StateElement: types.StateElement{MerkleProof: make([]types.Hash256, 10)}},
 					SatisfiedPolicy: types.SatisfiedPolicy{Policy: types.AnyoneCanSpend(), Signatures: make([]types.Signature, 1)},
 				}},
-				SiacoinOutputs: []types.SiacoinOutput{{Value: types.Siacoins(2)}},
+				BigfileOutputs: []types.BigfileOutput{{Value: types.Bigfiles(2)}},
 			}},
 		},
 	}

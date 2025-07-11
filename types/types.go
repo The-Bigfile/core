@@ -1,4 +1,4 @@
-// Package types defines the essential types of the Sia blockchain.
+// Package types defines the essential types of the Bigfile blockchain.
 package types
 
 import (
@@ -43,7 +43,7 @@ const (
 	// elements created in earlier transactions.
 	//
 	// Most clients do not need to reference this value directly, and should
-	// instead use the EphemeralSiacoinElement and EphemeralSiafundElement
+	// instead use the EphemeralBigfileElement and EphemeralBigfundElement
 	// functions to construct dependent transaction sets.
 	UnassignedLeafIndex = 10101010101010101010
 )
@@ -51,8 +51,8 @@ const (
 // Various specifiers.
 var (
 	SpecifierEd25519       = NewSpecifier("ed25519")
-	SpecifierSiacoinOutput = NewSpecifier("siacoin output")
-	SpecifierSiafundOutput = NewSpecifier("siafund output")
+	SpecifierBigfileOutput = NewSpecifier("bigfile output")
+	SpecifierBigfundOutput = NewSpecifier("bigfund output")
 	SpecifierFileContract  = NewSpecifier("file contract")
 	SpecifierStorageProof  = NewSpecifier("storage proof")
 	SpecifierFoundation    = NewSpecifier("foundation")
@@ -178,12 +178,12 @@ func (bid BlockID) CmpWork(t BlockID) int {
 }
 
 // MinerOutputID returns the ID of the block's i'th miner payout.
-func (bid BlockID) MinerOutputID(i int) SiacoinOutputID {
+func (bid BlockID) MinerOutputID(i int) BigfileOutputID {
 	return hashAll(bid, i)
 }
 
 // FoundationOutputID returns the ID of the block's Foundation subsidy.
-func (bid BlockID) FoundationOutputID() SiacoinOutputID {
+func (bid BlockID) FoundationOutputID() BigfileOutputID {
 	return hashAll(bid, SpecifierFoundation)
 }
 
@@ -196,65 +196,65 @@ type ChainIndex struct {
 	ID     BlockID `json:"id"`
 }
 
-// A SiacoinOutput is the recipient of some of the siacoins spent in a
+// A BigfileOutput is the recipient of some of the bigfiles spent in a
 // transaction.
-type SiacoinOutput struct {
+type BigfileOutput struct {
 	Value   Currency `json:"value"`
 	Address Address  `json:"address"`
 }
 
-// A SiacoinOutputID uniquely identifies a siacoin output.
-type SiacoinOutputID Hash256
+// A BigfileOutputID uniquely identifies a bigfile output.
+type BigfileOutputID Hash256
 
-// A SiacoinInput spends an unspent SiacoinOutput in the UTXO set by
+// A BigfileInput spends an unspent BigfileOutput in the UTXO set by
 // revealing and satisfying its unlock conditions.
-type SiacoinInput struct {
-	ParentID         SiacoinOutputID  `json:"parentID"`
+type BigfileInput struct {
+	ParentID         BigfileOutputID  `json:"parentID"`
 	UnlockConditions UnlockConditions `json:"unlockConditions"`
 }
 
 // MarshalJSON implements json.Marshaler.
 //
 // For convenience, the input's address is also calculated and included. This field is ignored during unmarshalling.
-func (si SiacoinInput) MarshalJSON() ([]byte, error) {
-	type jsonSiacoinInput SiacoinInput // prevent recursion
+func (si BigfileInput) MarshalJSON() ([]byte, error) {
+	type jsonBigfileInput BigfileInput // prevent recursion
 	return json.Marshal(struct {
-		jsonSiacoinInput
+		jsonBigfileInput
 		Address Address `json:"address"`
 	}{
-		jsonSiacoinInput: jsonSiacoinInput(si),
+		jsonBigfileInput: jsonBigfileInput(si),
 		Address:          si.UnlockConditions.UnlockHash(),
 	})
 }
 
-// A SiafundOutput is the recipient of some of the siafunds spent in a
+// A BigfundOutput is the recipient of some of the bigfilefunds spent in a
 // transaction.
-type SiafundOutput struct {
+type BigfundOutput struct {
 	Value   uint64  `json:"value"`
 	Address Address `json:"address"`
 }
 
-// A SiafundOutputID uniquely identifies a siafund output.
-type SiafundOutputID Hash256
+// A BigfundOutputID uniquely identifies a bigfund output.
+type BigfundOutputID Hash256
 
-// ClaimOutputID returns the ID of the SiacoinOutput that is created when
-// the siafund output is spent.
-func (sfoid SiafundOutputID) ClaimOutputID() SiacoinOutputID {
-	return hashAll(sfoid)
+// ClaimOutputID returns the ID of the BigfileOutput that is created when
+// the bigfund output is spent.
+func (bfoid BigfundOutputID) ClaimOutputID() BigfileOutputID {
+	return hashAll(bfoid)
 }
 
-// V2ClaimOutputID returns the ID of the SiacoinOutput that is created when the
-// siafund output is spent.
-func (sfoid SiafundOutputID) V2ClaimOutputID() SiacoinOutputID {
-	return hashAll("id/v2siacoinclaimoutput", sfoid)
+// V2ClaimOutputID returns the ID of the BigfileOutput that is created when the
+// bigfund output is spent.
+func (bfoid BigfundOutputID) V2ClaimOutputID() BigfileOutputID {
+	return hashAll("id/v2bigfileclaimoutput", bfoid)
 }
 
-// A SiafundInput spends an unspent SiafundOutput in the UTXO set by revealing
-// and satisfying its unlock conditions. SiafundInputs also include a
-// ClaimAddress, specifying the recipient of the siacoins that were earned by
+// A BigfundInput spends an unspent BigfundOutput in the UTXO set by revealing
+// and satisfying its unlock conditions. BigfundInputs also include a
+// ClaimAddress, specifying the recipient of the bigfiles that were earned by
 // the output.
-type SiafundInput struct {
-	ParentID         SiafundOutputID  `json:"parentID"`
+type BigfundInput struct {
+	ParentID         BigfundOutputID  `json:"parentID"`
 	UnlockConditions UnlockConditions `json:"unlockConditions"`
 	ClaimAddress     Address          `json:"claimAddress"`
 }
@@ -262,13 +262,13 @@ type SiafundInput struct {
 // MarshalJSON implements json.Marshaler.
 //
 // For convenience, the input's address is also calculated and included. This field is ignored during unmarshalling.
-func (si SiafundInput) MarshalJSON() ([]byte, error) {
-	type jsonSiafundInput SiafundInput // prevent recursion
+func (si BigfundInput) MarshalJSON() ([]byte, error) {
+	type jsonBigfundInput BigfundInput // prevent recursion
 	return json.Marshal(struct {
-		jsonSiafundInput
+		jsonBigfundInput
 		Address Address `json:"address"`
 	}{
-		jsonSiafundInput: jsonSiafundInput(si),
+		jsonBigfundInput: jsonBigfundInput(si),
 		Address:          si.UnlockConditions.UnlockHash(),
 	})
 }
@@ -283,8 +283,8 @@ type FileContract struct {
 	WindowStart        uint64          `json:"windowStart"`
 	WindowEnd          uint64          `json:"windowEnd"`
 	Payout             Currency        `json:"payout"`
-	ValidProofOutputs  []SiacoinOutput `json:"validProofOutputs"`
-	MissedProofOutputs []SiacoinOutput `json:"missedProofOutputs"`
+	ValidProofOutputs  []BigfileOutput `json:"validProofOutputs"`
+	MissedProofOutputs []BigfileOutput `json:"missedProofOutputs"`
 	UnlockHash         Address         `json:"unlockHash"`
 	RevisionNumber     uint64          `json:"revisionNumber"`
 }
@@ -295,41 +295,41 @@ func (fc *FileContract) EndHeight() uint64 { return fc.WindowStart }
 
 // ValidRenterOutput returns the output that will be created for the renter if
 // the contract resolves valid.
-func (fc *FileContract) ValidRenterOutput() SiacoinOutput {
+func (fc *FileContract) ValidRenterOutput() BigfileOutput {
 	return fc.ValidProofOutputs[RenterContractIndex]
 }
 
-// ValidRenterPayout returns the amount of siacoins that the renter will receive
+// ValidRenterPayout returns the amount of bigfiles that the renter will receive
 // if the contract resolves valid.
 func (fc *FileContract) ValidRenterPayout() Currency { return fc.ValidRenterOutput().Value }
 
 // MissedRenterOutput returns the output that will be created for the renter if
 // the contract resolves missed.
-func (fc *FileContract) MissedRenterOutput() SiacoinOutput {
+func (fc *FileContract) MissedRenterOutput() BigfileOutput {
 	return fc.MissedProofOutputs[RenterContractIndex]
 }
 
-// MissedRenterPayout returns the amount of siacoins that the renter will receive
+// MissedRenterPayout returns the amount of bigfiles that the renter will receive
 // if the contract resolves missed.
 func (fc *FileContract) MissedRenterPayout() Currency { return fc.MissedRenterOutput().Value }
 
 // ValidHostOutput returns the output that will be created for the host if
 // the contract resolves valid.
-func (fc *FileContract) ValidHostOutput() SiacoinOutput {
+func (fc *FileContract) ValidHostOutput() BigfileOutput {
 	return fc.ValidProofOutputs[HostContractIndex]
 }
 
-// ValidHostPayout returns the amount of siacoins that the host will receive
+// ValidHostPayout returns the amount of bigfiles that the host will receive
 // if the contract resolves valid.
 func (fc *FileContract) ValidHostPayout() Currency { return fc.ValidHostOutput().Value }
 
 // MissedHostOutput returns the output that will be created for the host if
 // the contract resolves missed.
-func (fc *FileContract) MissedHostOutput() SiacoinOutput {
+func (fc *FileContract) MissedHostOutput() BigfileOutput {
 	return fc.MissedProofOutputs[HostContractIndex]
 }
 
-// MissedHostPayout returns the amount of siacoins that the host will receive
+// MissedHostPayout returns the amount of bigfiles that the host will receive
 // if the contract resolves missed.
 func (fc *FileContract) MissedHostPayout() Currency { return fc.MissedHostOutput().Value }
 
@@ -337,22 +337,22 @@ func (fc *FileContract) MissedHostPayout() Currency { return fc.MissedHostOutput
 type FileContractID Hash256
 
 // ValidOutputID returns the ID of the valid proof output at index i.
-func (fcid FileContractID) ValidOutputID(i int) SiacoinOutputID {
+func (fcid FileContractID) ValidOutputID(i int) BigfileOutputID {
 	return hashAll(SpecifierStorageProof, fcid, true, i)
 }
 
 // MissedOutputID returns the ID of the missed proof output at index i.
-func (fcid FileContractID) MissedOutputID(i int) SiacoinOutputID {
+func (fcid FileContractID) MissedOutputID(i int) BigfileOutputID {
 	return hashAll(SpecifierStorageProof, fcid, false, i)
 }
 
 // V2RenterOutputID returns the ID of the renter output for a v2 contract.
-func (fcid FileContractID) V2RenterOutputID() SiacoinOutputID {
+func (fcid FileContractID) V2RenterOutputID() BigfileOutputID {
 	return hashAll("id/v2filecontractoutput", fcid, 0)
 }
 
 // V2HostOutputID returns the ID of the host output for a v2 contract.
-func (fcid FileContractID) V2HostOutputID() SiacoinOutputID {
+func (fcid FileContractID) V2HostOutputID() BigfileOutputID {
 	return hashAll("id/v2filecontractoutput", fcid, 1)
 }
 
@@ -393,13 +393,13 @@ type FoundationAddressUpdate struct {
 // signature.
 type CoveredFields struct {
 	WholeTransaction      bool     `json:"wholeTransaction,omitempty"`
-	SiacoinInputs         []uint64 `json:"siacoinInputs,omitempty"`
-	SiacoinOutputs        []uint64 `json:"siacoinOutputs,omitempty"`
+	BigfileInputs         []uint64 `json:"bigfileInputs,omitempty"`
+	BigfileOutputs        []uint64 `json:"bigfileOutputs,omitempty"`
 	FileContracts         []uint64 `json:"fileContracts,omitempty"`
 	FileContractRevisions []uint64 `json:"fileContractRevisions,omitempty"`
 	StorageProofs         []uint64 `json:"storageProofs,omitempty"`
-	SiafundInputs         []uint64 `json:"siafundInputs,omitempty"`
-	SiafundOutputs        []uint64 `json:"siafundOutputs,omitempty"`
+	BigfundInputs         []uint64 `json:"bigfundInputs,omitempty"`
+	BigfundOutputs        []uint64 `json:"bigfundOutputs,omitempty"`
 	MinerFees             []uint64 `json:"minerFees,omitempty"`
 	ArbitraryData         []uint64 `json:"arbitraryData,omitempty"`
 	Signatures            []uint64 `json:"signatures,omitempty"`
@@ -416,13 +416,13 @@ type TransactionSignature struct {
 
 // A Transaction effects a change of blockchain state.
 type Transaction struct {
-	SiacoinInputs         []SiacoinInput         `json:"siacoinInputs,omitempty"`
-	SiacoinOutputs        []SiacoinOutput        `json:"siacoinOutputs,omitempty"`
+	BigfileInputs         []BigfileInput         `json:"bigfileInputs,omitempty"`
+	BigfileOutputs        []BigfileOutput        `json:"bigfileOutputs,omitempty"`
 	FileContracts         []FileContract         `json:"fileContracts,omitempty"`
 	FileContractRevisions []FileContractRevision `json:"fileContractRevisions,omitempty"`
 	StorageProofs         []StorageProof         `json:"storageProofs,omitempty"`
-	SiafundInputs         []SiafundInput         `json:"siafundInputs,omitempty"`
-	SiafundOutputs        []SiafundOutput        `json:"siafundOutputs,omitempty"`
+	BigfundInputs         []BigfundInput         `json:"bigfundInputs,omitempty"`
+	BigfundOutputs        []BigfundOutput        `json:"bigfundOutputs,omitempty"`
 	MinerFees             []Currency             `json:"minerFees,omitempty"`
 	ArbitraryData         [][]byte               `json:"arbitraryData,omitempty"`
 	Signatures            []TransactionSignature `json:"signatures,omitempty"`
@@ -434,35 +434,35 @@ type Transaction struct {
 // These fields are ignored during unmarshalling.
 func (txn Transaction) MarshalJSON() ([]byte, error) {
 	type jsonTxn Transaction
-	type jsonSiacoinOutput struct {
-		ID SiacoinOutputID `json:"id"`
-		SiacoinOutput
+	type jsonBigfileOutput struct {
+		ID BigfileOutputID `json:"id"`
+		BigfileOutput
 	}
-	type jsonSiafundOutput struct {
-		ID SiafundOutputID `json:"id"`
-		SiafundOutput
+	type jsonBigfundOutput struct {
+		ID BigfundOutputID `json:"id"`
+		BigfundOutput
 	}
 	obj := struct {
 		ID             TransactionID       `json:"id"`
-		SiacoinOutputs []jsonSiacoinOutput `json:"siacoinOutputs,omitempty"`
-		SiafundOutputs []jsonSiafundOutput `json:"siafundOutputs,omitempty"`
+		BigfileOutputs []jsonBigfileOutput `json:"bigfileOutputs,omitempty"`
+		BigfundOutputs []jsonBigfundOutput `json:"bigfundOutputs,omitempty"`
 		jsonTxn
 	}{
 		ID:             txn.ID(),
 		jsonTxn:        jsonTxn(txn),
-		SiacoinOutputs: make([]jsonSiacoinOutput, 0, len(txn.SiacoinOutputs)),
-		SiafundOutputs: make([]jsonSiafundOutput, 0, len(txn.SiafundOutputs)),
+		BigfileOutputs: make([]jsonBigfileOutput, 0, len(txn.BigfileOutputs)),
+		BigfundOutputs: make([]jsonBigfundOutput, 0, len(txn.BigfundOutputs)),
 	}
-	for i := range txn.SiacoinOutputs {
-		obj.SiacoinOutputs = append(obj.SiacoinOutputs, jsonSiacoinOutput{
-			ID:            txn.SiacoinOutputID(i),
-			SiacoinOutput: txn.SiacoinOutputs[i],
+	for i := range txn.BigfileOutputs {
+		obj.BigfileOutputs = append(obj.BigfileOutputs, jsonBigfileOutput{
+			ID:            txn.BigfileOutputID(i),
+			BigfileOutput: txn.BigfileOutputs[i],
 		})
 	}
-	for i := range txn.SiafundOutputs {
-		obj.SiafundOutputs = append(obj.SiafundOutputs, jsonSiafundOutput{
-			ID:            txn.SiafundOutputID(i),
-			SiafundOutput: txn.SiafundOutputs[i],
+	for i := range txn.BigfundOutputs {
+		obj.BigfundOutputs = append(obj.BigfundOutputs, jsonBigfundOutput{
+			ID:            txn.BigfundOutputID(i),
+			BigfundOutput: txn.BigfundOutputs[i],
 		})
 	}
 	return json.Marshal(obj)
@@ -483,20 +483,20 @@ func (txn *Transaction) FullHash() Hash256 {
 	return hashAll(txn)
 }
 
-// SiacoinOutputID returns the ID of the siacoin output at index i.
-func (txn *Transaction) SiacoinOutputID(i int) SiacoinOutputID {
-	return hashAll(SpecifierSiacoinOutput, (*txnSansSigs)(txn), i)
+// BigfileOutputID returns the ID of the bigfile output at index i.
+func (txn *Transaction) BigfileOutputID(i int) BigfileOutputID {
+	return hashAll(SpecifierBigfileOutput, (*txnSansSigs)(txn), i)
 }
 
-// SiafundOutputID returns the ID of the siafund output at index i.
-func (txn *Transaction) SiafundOutputID(i int) SiafundOutputID {
-	return hashAll(SpecifierSiafundOutput, (*txnSansSigs)(txn), i)
+// BigfundOutputID returns the ID of the bigfund output at index i.
+func (txn *Transaction) BigfundOutputID(i int) BigfundOutputID {
+	return hashAll(SpecifierBigfundOutput, (*txnSansSigs)(txn), i)
 }
 
-// SiafundClaimOutputID returns the ID of the siacoin claim output for the
-// siafund input at index i.
-func (txn *Transaction) SiafundClaimOutputID(i int) SiacoinOutputID {
-	return hashAll(txn.SiafundOutputID(i))
+// BigfundClaimOutputID returns the ID of the bigfile claim output for the
+// bigfund input at index i.
+func (txn *Transaction) BigfundClaimOutputID(i int) BigfileOutputID {
+	return hashAll(txn.BigfundOutputID(i))
 }
 
 // FileContractID returns the ID of the file contract at index i.
@@ -528,8 +528,8 @@ type V2FileContract struct {
 	FileMerkleRoot   Hash256       `json:"fileMerkleRoot"`
 	ProofHeight      uint64        `json:"proofHeight"`
 	ExpirationHeight uint64        `json:"expirationHeight"`
-	RenterOutput     SiacoinOutput `json:"renterOutput"`
-	HostOutput       SiacoinOutput `json:"hostOutput"`
+	RenterOutput     BigfileOutput `json:"renterOutput"`
+	HostOutput       BigfileOutput `json:"hostOutput"`
 	MissedHostValue  Currency      `json:"missedHostValue"`
 	TotalCollateral  Currency      `json:"totalCollateral"`
 	RenterPublicKey  PublicKey     `json:"renterPublicKey"`
@@ -543,26 +543,26 @@ type V2FileContract struct {
 
 // MissedHostOutput returns the host output that will be created if the contract
 // resolves missed.
-func (fc V2FileContract) MissedHostOutput() SiacoinOutput {
-	return SiacoinOutput{
+func (fc V2FileContract) MissedHostOutput() BigfileOutput {
+	return BigfileOutput{
 		Value:   fc.MissedHostValue,
 		Address: fc.HostOutput.Address,
 	}
 }
 
-// A V2SiacoinInput spends an unspent SiacoinElement in the state accumulator by
+// A V2BigfileInput spends an unspent BigfileElement in the state accumulator by
 // revealing its public key and signing the transaction.
-type V2SiacoinInput struct {
-	Parent          SiacoinElement  `json:"parent"`
+type V2BigfileInput struct {
+	Parent          BigfileElement  `json:"parent"`
 	SatisfiedPolicy SatisfiedPolicy `json:"satisfiedPolicy"`
 }
 
-// A V2SiafundInput spends an unspent SiafundElement in the state accumulator by
+// A V2BigfundInput spends an unspent BigfundElement in the state accumulator by
 // revealing its public key and signing the transaction. Inputs also include a
-// ClaimAddress, specifying the recipient of the siacoins that were earned by
-// the SiafundElement.
-type V2SiafundInput struct {
-	Parent          SiafundElement  `json:"parent"`
+// ClaimAddress, specifying the recipient of the bigfiles that were earned by
+// the BigfundElement.
+type V2BigfundInput struct {
+	Parent          BigfundElement  `json:"parent"`
 	ClaimAddress    Address         `json:"claimAddress"`
 	SatisfiedPolicy SatisfiedPolicy `json:"satisfiedPolicy"`
 }
@@ -613,8 +613,8 @@ func (*V2FileContractExpiration) isV2FileContractResolution() {}
 
 // A V2FileContractRenewal renews a file contract.
 type V2FileContractRenewal struct {
-	FinalRenterOutput SiacoinOutput  `json:"finalRenterOutput"`
-	FinalHostOutput   SiacoinOutput  `json:"finalHostOutput"`
+	FinalRenterOutput BigfileOutput  `json:"finalRenterOutput"`
+	FinalHostOutput   BigfileOutput  `json:"finalHostOutput"`
 	RenterRollover    Currency       `json:"renterRollover"`
 	HostRollover      Currency       `json:"hostRollover"`
 	NewContract       V2FileContract `json:"newContract"`
@@ -664,7 +664,7 @@ type Attestation struct {
 type AttestationID Hash256
 
 // An ElementID identifies a generic element within the state accumulator. In
-// practice, it may be a BlockID, SiacoinOutputID, SiafundOutputID,
+// practice, it may be a BlockID, BigfileOutputID, BigfundOutputID,
 // FileContractID, or AttestationID.
 type ElementID = [32]byte
 
@@ -683,20 +683,20 @@ type ChainIndexElement struct {
 	ChainIndex   ChainIndex   `json:"chainIndex"`
 }
 
-// A SiacoinElement is a record of a SiacoinOutput within the state accumulator.
-type SiacoinElement struct {
-	ID             SiacoinOutputID `json:"id"`
+// A BigfileElement is a record of a BigfileOutput within the state accumulator.
+type BigfileElement struct {
+	ID             BigfileOutputID `json:"id"`
 	StateElement   StateElement    `json:"stateElement"`
-	SiacoinOutput  SiacoinOutput   `json:"siacoinOutput"`
+	BigfileOutput  BigfileOutput   `json:"bigfileOutput"`
 	MaturityHeight uint64          `json:"maturityHeight"`
 }
 
-// A SiafundElement is a record of a SiafundOutput within the state accumulator.
-type SiafundElement struct {
-	ID            SiafundOutputID `json:"id"`
+// A BigfundElement is a record of a BigfundOutput within the state accumulator.
+type BigfundElement struct {
+	ID            BigfundOutputID `json:"id"`
 	StateElement  StateElement    `json:"stateElement"`
-	SiafundOutput SiafundOutput   `json:"siafundOutput"`
-	ClaimStart    Currency        `json:"claimStart"` // value of SiafundTaxRevenue when element was created
+	BigfundOutput BigfundOutput   `json:"bigfundOutput"`
+	ClaimStart    Currency        `json:"claimStart"` // value of BigfundTaxRevenue when element was created
 }
 
 // A FileContractElement is a record of a FileContract within the state
@@ -725,10 +725,10 @@ type AttestationElement struct {
 
 // A V2Transaction effects a change of blockchain state.
 type V2Transaction struct {
-	SiacoinInputs           []V2SiacoinInput           `json:"siacoinInputs,omitempty"`
-	SiacoinOutputs          []SiacoinOutput            `json:"siacoinOutputs,omitempty"`
-	SiafundInputs           []V2SiafundInput           `json:"siafundInputs,omitempty"`
-	SiafundOutputs          []SiafundOutput            `json:"siafundOutputs,omitempty"`
+	BigfileInputs           []V2BigfileInput           `json:"bigfileInputs,omitempty"`
+	BigfileOutputs          []BigfileOutput            `json:"bigfileOutputs,omitempty"`
+	BigfundInputs           []V2BigfundInput           `json:"bigfundInputs,omitempty"`
+	BigfundOutputs          []BigfundOutput            `json:"bigfundOutputs,omitempty"`
 	FileContracts           []V2FileContract           `json:"fileContracts,omitempty"`
 	FileContractRevisions   []V2FileContractRevision   `json:"fileContractRevisions,omitempty"`
 	FileContractResolutions []V2FileContractResolution `json:"fileContractResolutions,omitempty"`
@@ -753,14 +753,14 @@ func (txn *V2Transaction) FullHash() Hash256 {
 	return hashAll(txn)
 }
 
-// SiacoinOutputID returns the ID for the siacoin output at index i.
-func (*V2Transaction) SiacoinOutputID(txid TransactionID, i int) SiacoinOutputID {
-	return hashAll("id/siacoinoutput", txid, i)
+// BigfileOutputID returns the ID for the bigfile output at index i.
+func (*V2Transaction) BigfileOutputID(txid TransactionID, i int) BigfileOutputID {
+	return hashAll("id/bigfileoutput", txid, i)
 }
 
-// SiafundOutputID returns the ID for the siafund output at index i.
-func (*V2Transaction) SiafundOutputID(txid TransactionID, i int) SiafundOutputID {
-	return hashAll("id/siafundoutput", txid, i)
+// BigfundOutputID returns the ID for the bigfund output at index i.
+func (*V2Transaction) BigfundOutputID(txid TransactionID, i int) BigfundOutputID {
+	return hashAll("id/bigfundoutput", txid, i)
 }
 
 // V2FileContractID returns the ID for the v2 file contract at index i.
@@ -773,47 +773,47 @@ func (*V2Transaction) AttestationID(txid TransactionID, i int) AttestationID {
 	return hashAll("id/attestation", txid, i)
 }
 
-// EphemeralSiacoinOutput returns a SiacoinElement for the siacoin output at
+// EphemeralBigfileOutput returns a BigfileElement for the bigfile output at
 // index i.
-func (txn *V2Transaction) EphemeralSiacoinOutput(i int) SiacoinElement {
-	return SiacoinElement{
+func (txn *V2Transaction) EphemeralBigfileOutput(i int) BigfileElement {
+	return BigfileElement{
 		StateElement: StateElement{
 			LeafIndex: UnassignedLeafIndex,
 		},
-		ID:            txn.SiacoinOutputID(txn.ID(), i),
-		SiacoinOutput: txn.SiacoinOutputs[i],
+		ID:            txn.BigfileOutputID(txn.ID(), i),
+		BigfileOutput: txn.BigfileOutputs[i],
 	}
 }
 
-// EphemeralSiafundOutput returns a SiafundElement for the siafund output at
+// EphemeralBigfundOutput returns a BigfundElement for the bigfund output at
 // index i.
-func (txn *V2Transaction) EphemeralSiafundOutput(i int) SiafundElement {
-	return SiafundElement{
+func (txn *V2Transaction) EphemeralBigfundOutput(i int) BigfundElement {
+	return BigfundElement{
 		StateElement: StateElement{
 			LeafIndex: UnassignedLeafIndex,
 		},
-		ID:            txn.SiafundOutputID(txn.ID(), i),
-		SiafundOutput: txn.SiafundOutputs[i],
+		ID:            txn.BigfundOutputID(txn.ID(), i),
+		BigfundOutput: txn.BigfundOutputs[i],
 	}
 }
 
 // DeepCopy returns a copy of txn that does not alias any of its memory.
 func (txn *V2Transaction) DeepCopy() V2Transaction {
 	c := *txn
-	c.SiacoinInputs = slices.Clone(c.SiacoinInputs)
-	for i := range c.SiacoinInputs {
-		c.SiacoinInputs[i].Parent = c.SiacoinInputs[i].Parent.Copy()
-		c.SiacoinInputs[i].SatisfiedPolicy.Signatures = slices.Clone(c.SiacoinInputs[i].SatisfiedPolicy.Signatures)
-		c.SiacoinInputs[i].SatisfiedPolicy.Preimages = slices.Clone(c.SiacoinInputs[i].SatisfiedPolicy.Preimages)
+	c.BigfileInputs = slices.Clone(c.BigfileInputs)
+	for i := range c.BigfileInputs {
+		c.BigfileInputs[i].Parent = c.BigfileInputs[i].Parent.Copy()
+		c.BigfileInputs[i].SatisfiedPolicy.Signatures = slices.Clone(c.BigfileInputs[i].SatisfiedPolicy.Signatures)
+		c.BigfileInputs[i].SatisfiedPolicy.Preimages = slices.Clone(c.BigfileInputs[i].SatisfiedPolicy.Preimages)
 	}
-	c.SiacoinOutputs = slices.Clone(c.SiacoinOutputs)
-	c.SiafundInputs = slices.Clone(c.SiafundInputs)
-	for i := range c.SiafundInputs {
-		c.SiafundInputs[i].Parent = c.SiafundInputs[i].Parent.Copy()
-		c.SiafundInputs[i].SatisfiedPolicy.Signatures = slices.Clone(c.SiafundInputs[i].SatisfiedPolicy.Signatures)
-		c.SiafundInputs[i].SatisfiedPolicy.Preimages = slices.Clone(c.SiafundInputs[i].SatisfiedPolicy.Preimages)
+	c.BigfileOutputs = slices.Clone(c.BigfileOutputs)
+	c.BigfundInputs = slices.Clone(c.BigfundInputs)
+	for i := range c.BigfundInputs {
+		c.BigfundInputs[i].Parent = c.BigfundInputs[i].Parent.Copy()
+		c.BigfundInputs[i].SatisfiedPolicy.Signatures = slices.Clone(c.BigfundInputs[i].SatisfiedPolicy.Signatures)
+		c.BigfundInputs[i].SatisfiedPolicy.Preimages = slices.Clone(c.BigfundInputs[i].SatisfiedPolicy.Preimages)
 	}
-	c.SiafundOutputs = slices.Clone(c.SiafundOutputs)
+	c.BigfundOutputs = slices.Clone(c.BigfundOutputs)
 	c.FileContracts = slices.Clone(c.FileContracts)
 	c.FileContractRevisions = slices.Clone(c.FileContractRevisions)
 	for i := range c.FileContractRevisions {
@@ -872,7 +872,7 @@ type Block struct {
 	ParentID     BlockID         `json:"parentID"`
 	Nonce        uint64          `json:"nonce"`
 	Timestamp    time.Time       `json:"timestamp"`
-	MinerPayouts []SiacoinOutput `json:"minerPayouts"`
+	MinerPayouts []BigfileOutput `json:"minerPayouts"`
 	Transactions []Transaction   `json:"transactions"`
 
 	V2 *V2BlockData `json:"v2,omitempty"`
@@ -1107,29 +1107,29 @@ func (aid *AttestationID) UnmarshalText(b []byte) error {
 }
 
 // String implements fmt.Stringer.
-func (scoid SiacoinOutputID) String() string { return hex.EncodeToString(scoid[:]) }
+func (bigoid BigfileOutputID) String() string { return hex.EncodeToString(bigoid[:]) }
 
 // MarshalText implements encoding.TextMarshaler.
-func (scoid SiacoinOutputID) MarshalText() ([]byte, error) {
-	return []byte(hex.EncodeToString(scoid[:])), nil
+func (bigoid BigfileOutputID) MarshalText() ([]byte, error) {
+	return []byte(hex.EncodeToString(bigoid[:])), nil
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (scoid *SiacoinOutputID) UnmarshalText(b []byte) error {
-	return unmarshalHex(scoid[:], b)
+func (bigoid *BigfileOutputID) UnmarshalText(b []byte) error {
+	return unmarshalHex(bigoid[:], b)
 }
 
 // String implements fmt.Stringer.
-func (sfoid SiafundOutputID) String() string { return hex.EncodeToString(sfoid[:]) }
+func (bfoid BigfundOutputID) String() string { return hex.EncodeToString(bfoid[:]) }
 
 // MarshalText implements encoding.TextMarshaler.
-func (sfoid SiafundOutputID) MarshalText() ([]byte, error) {
-	return []byte(hex.EncodeToString(sfoid[:])), nil
+func (bfoid BigfundOutputID) MarshalText() ([]byte, error) {
+	return []byte(hex.EncodeToString(bfoid[:])), nil
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (sfoid *SiafundOutputID) UnmarshalText(b []byte) error {
-	return unmarshalHex(sfoid[:], b)
+func (bfoid *BigfundOutputID) UnmarshalText(b []byte) error {
+	return unmarshalHex(bfoid[:], b)
 }
 
 // String implements fmt.Stringer.
@@ -1162,8 +1162,8 @@ func (fcr FileContractRevision) MarshalJSON() ([]byte, error) {
 		WindowStart      uint64           `json:"windowStart"`
 		WindowEnd        uint64           `json:"windowEnd"`
 		// Payout omitted; see FileContractRevision docstring
-		ValidProofOutputs  []SiacoinOutput `json:"validProofOutputs"`
-		MissedProofOutputs []SiacoinOutput `json:"missedProofOutputs"`
+		ValidProofOutputs  []BigfileOutput `json:"validProofOutputs"`
+		MissedProofOutputs []BigfileOutput `json:"missedProofOutputs"`
 		UnlockHash         Address         `json:"unlockHash"`
 		RevisionNumber     uint64          `json:"revisionNumber"`
 	}{
@@ -1298,36 +1298,36 @@ func (res *V2FileContractResolution) UnmarshalJSON(b []byte) error {
 // field is ignored during unmarshalling.
 func (txn V2Transaction) MarshalJSON() ([]byte, error) {
 	type jsonTxn V2Transaction // prevent recursion
-	type jsonSiacoinOutput struct {
-		ID SiacoinOutputID `json:"id"`
-		SiacoinOutput
+	type jsonBigfileOutput struct {
+		ID BigfileOutputID `json:"id"`
+		BigfileOutput
 	}
-	type jsonSiafundOutput struct {
-		ID SiafundOutputID `json:"id"`
-		SiafundOutput
+	type jsonBigfundOutput struct {
+		ID BigfundOutputID `json:"id"`
+		BigfundOutput
 	}
 	txnID := txn.ID()
 	obj := struct {
 		ID             TransactionID       `json:"id"`
-		SiacoinOutputs []jsonSiacoinOutput `json:"siacoinOutputs"`
-		SiafundOutputs []jsonSiafundOutput `json:"siafundOutputs"`
+		BigfileOutputs []jsonBigfileOutput `json:"bigfileOutputs"`
+		BigfundOutputs []jsonBigfundOutput `json:"bigfundOutputs"`
 		jsonTxn
 	}{
 		ID:             txnID,
 		jsonTxn:        jsonTxn(txn),
-		SiacoinOutputs: make([]jsonSiacoinOutput, 0, len(txn.SiacoinOutputs)),
-		SiafundOutputs: make([]jsonSiafundOutput, 0, len(txn.SiafundOutputs)),
+		BigfileOutputs: make([]jsonBigfileOutput, 0, len(txn.BigfileOutputs)),
+		BigfundOutputs: make([]jsonBigfundOutput, 0, len(txn.BigfundOutputs)),
 	}
-	for i := range txn.SiacoinOutputs {
-		obj.SiacoinOutputs = append(obj.SiacoinOutputs, jsonSiacoinOutput{
-			ID:            txn.SiacoinOutputID(txnID, i),
-			SiacoinOutput: txn.SiacoinOutputs[i],
+	for i := range txn.BigfileOutputs {
+		obj.BigfileOutputs = append(obj.BigfileOutputs, jsonBigfileOutput{
+			ID:            txn.BigfileOutputID(txnID, i),
+			BigfileOutput: txn.BigfileOutputs[i],
 		})
 	}
-	for i := range txn.SiafundOutputs {
-		obj.SiafundOutputs = append(obj.SiafundOutputs, jsonSiafundOutput{
-			ID:            txn.SiafundOutputID(txnID, i),
-			SiafundOutput: txn.SiafundOutputs[i],
+	for i := range txn.BigfundOutputs {
+		obj.BigfundOutputs = append(obj.BigfundOutputs, jsonBigfundOutput{
+			ID:            txn.BigfundOutputID(txnID, i),
+			BigfundOutput: txn.BigfundOutputs[i],
 		})
 	}
 	return json.Marshal(obj)
@@ -1355,16 +1355,16 @@ func (cie ChainIndexElement) Move() ChainIndexElement {
 
 // Move returns a shallow copy of the element. It must only be used when the
 // element's memory is not shared.
-func (sce SiacoinElement) Move() SiacoinElement {
-	sce.StateElement = sce.StateElement.Move()
-	return sce
+func (bige BigfileElement) Move() BigfileElement {
+	bige.StateElement = bige.StateElement.Move()
+	return bige
 }
 
 // Move returns a shallow copy of the element. It must only be used when the
 // element's memory is not shared.
-func (sfe SiafundElement) Move() SiafundElement {
-	sfe.StateElement = sfe.StateElement.Move()
-	return sfe
+func (bfe BigfundElement) Move() BigfundElement {
+	bfe.StateElement = bfe.StateElement.Move()
+	return bfe
 }
 
 // Move returns a shallow copy of the element. It must only be used when the
@@ -1404,16 +1404,16 @@ func (cie ChainIndexElement) Share() ChainIndexElement {
 
 // Share returns a shallow copy of the element. It must be used whenever the
 // element's memory is intentionally aliased.
-func (sce SiacoinElement) Share() SiacoinElement {
-	sce.StateElement = sce.StateElement.Share()
-	return sce
+func (bige BigfileElement) Share() BigfileElement {
+	bige.StateElement = bige.StateElement.Share()
+	return bige
 }
 
 // Share returns a shallow copy of the element. It must be used whenever the
 // element's memory is intentionally aliased.
-func (sfe SiafundElement) Share() SiafundElement {
-	sfe.StateElement = sfe.StateElement.Share()
-	return sfe
+func (bfe BigfundElement) Share() BigfundElement {
+	bfe.StateElement = bfe.StateElement.Share()
+	return bfe
 }
 
 // Share returns a shallow copy of the element. It must be used whenever the
@@ -1454,16 +1454,16 @@ func (cie ChainIndexElement) Copy() ChainIndexElement {
 
 // Copy returns a deep copy of the element. It must be used whenever the
 // element's memory is copied.
-func (sce SiacoinElement) Copy() SiacoinElement {
-	sce.StateElement = sce.StateElement.Copy()
-	return sce
+func (bige BigfileElement) Copy() BigfileElement {
+	bige.StateElement = bige.StateElement.Copy()
+	return bige
 }
 
 // Copy returns a deep copy of the element. It must be used whenever the
 // element's memory is copied.
-func (sfe SiafundElement) Copy() SiafundElement {
-	sfe.StateElement = sfe.StateElement.Copy()
-	return sfe
+func (bfe BigfundElement) Copy() BigfundElement {
+	bfe.StateElement = bfe.StateElement.Copy()
+	return bfe
 }
 
 // Copy returns a deep copy of the element. It must be used whenever the

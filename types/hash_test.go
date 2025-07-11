@@ -11,7 +11,7 @@ import (
 // stratum miners to ensure it is compatible with existing
 // hardware.
 func TestStratumBlockMerkleRoot(t *testing.T) {
-	minerPayouts := make([]SiacoinOutput, frand.Intn(100))
+	minerPayouts := make([]BigfileOutput, frand.Intn(100))
 	txns := make([]Transaction, frand.Intn(100))
 	for i := range minerPayouts {
 		minerPayouts[i].Address = frand.Entropy256()
@@ -27,7 +27,7 @@ func TestStratumBlockMerkleRoot(t *testing.T) {
 	for _, mp := range minerPayouts {
 		h.Reset()
 		h.E.WriteUint8(leafHashPrefix)
-		V1SiacoinOutput(mp).EncodeTo(h.E)
+		V1BigfileOutput(mp).EncodeTo(h.E)
 		acc.AddLeaf(h.Sum())
 	}
 	for _, txn := range txns {

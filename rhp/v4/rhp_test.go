@@ -15,9 +15,9 @@ func TestMinRenterAllowanceMaxHostCollateral(t *testing.T) {
 		Collateral:   types.NewCurrency64(2), // 2 H per byte per block
 	}
 
-	collateral := types.Siacoins(2)
+	collateral := types.Bigfiles(2)
 	minAllowance := MinRenterAllowance(hp, collateral)
-	expected := types.Siacoins(1)
+	expected := types.Bigfiles(1)
 	if !minAllowance.Equals(expected) {
 		t.Fatalf("expected %v, got %v", expected, minAllowance)
 	}
@@ -67,22 +67,22 @@ func TestRenewalCost(t *testing.T) {
 		{
 			Description: "no storage",
 			Modify: func(rev *types.V2FileContract, p *RPCRenewContractParams) {
-				p.Allowance = rev.RenterOutput.Value.Add(types.Siacoins(20))
-				p.Collateral = rev.TotalCollateral.Add(types.Siacoins(10))
+				p.Allowance = rev.RenterOutput.Value.Add(types.Bigfiles(20))
+				p.Collateral = rev.TotalCollateral.Add(types.Bigfiles(10))
 			},
-			RenterCost: types.Siacoins(20).Add(prices.ContractPrice),
-			HostCost:   types.Siacoins(10),
+			RenterCost: types.Bigfiles(20).Add(prices.ContractPrice),
+			HostCost:   types.Bigfiles(10),
 		},
 		{
 			Description: "no storage - no renter rollover",
 			Modify: func(rev *types.V2FileContract, p *RPCRenewContractParams) {
-				p.Allowance = rev.RenterOutput.Value.Add(types.Siacoins(20))
-				p.Collateral = rev.TotalCollateral.Add(types.Siacoins(10))
+				p.Allowance = rev.RenterOutput.Value.Add(types.Bigfiles(20))
+				p.Collateral = rev.TotalCollateral.Add(types.Bigfiles(10))
 				// transfer all of the renter funds to the host so the renter will need to put up the entire allowance
 				rev.HostOutput.Value, rev.RenterOutput.Value = rev.HostOutput.Value.Add(rev.RenterOutput.Value), types.ZeroCurrency
 			},
-			RenterCost: types.Siacoins(320).Add(prices.ContractPrice),
-			HostCost:   types.Siacoins(10),
+			RenterCost: types.Bigfiles(320).Add(prices.ContractPrice),
+			HostCost:   types.Bigfiles(10),
 		},
 		{
 			Description: "renewed storage - no additional funds",
@@ -112,18 +112,18 @@ func TestRenewalCost(t *testing.T) {
 				rev.Filesize = SectorSize
 
 				// adjust the renewal params
-				p.Allowance = rev.RenterOutput.Value.Add(types.Siacoins(20))
-				p.Collateral = rev.TotalCollateral.Add(types.Siacoins(10))
+				p.Allowance = rev.RenterOutput.Value.Add(types.Bigfiles(20))
+				p.Collateral = rev.TotalCollateral.Add(types.Bigfiles(10))
 			},
-			RenterCost: types.Siacoins(20).Add(prices.ContractPrice).Add(prices.StoragePrice.Mul64(SectorSize).Mul64(extension)), // storage cost is calculated for just the extension
-			HostCost:   types.Siacoins(10).Add(prices.Collateral.Mul64(SectorSize).Mul64(renewalDuration)),                       // collateral is calculated for the full duration
+			RenterCost: types.Bigfiles(20).Add(prices.ContractPrice).Add(prices.StoragePrice.Mul64(SectorSize).Mul64(extension)), // storage cost is calculated for just the extension
+			HostCost:   types.Bigfiles(10).Add(prices.Collateral.Mul64(SectorSize).Mul64(renewalDuration)),                       // collateral is calculated for the full duration
 		},
 		{
 			Description: "renewed storage - no renter rollover",
 			Modify: func(rev *types.V2FileContract, p *RPCRenewContractParams) {
 				// adjust the renewal params
-				p.Allowance = rev.RenterOutput.Value.Add(types.Siacoins(20))
-				p.Collateral = rev.TotalCollateral.Add(types.Siacoins(10))
+				p.Allowance = rev.RenterOutput.Value.Add(types.Bigfiles(20))
+				p.Collateral = rev.TotalCollateral.Add(types.Bigfiles(10))
 
 				// add storage
 				rev.Capacity = SectorSize
@@ -131,8 +131,8 @@ func TestRenewalCost(t *testing.T) {
 				// transfer all the renter funds to the host so the renter will need to put up more allowance
 				rev.HostOutput.Value, rev.RenterOutput.Value = rev.HostOutput.Value.Add(rev.RenterOutput.Value), types.ZeroCurrency
 			},
-			RenterCost: types.Siacoins(320).Add(prices.ContractPrice).Add(prices.StoragePrice.Mul64(SectorSize).Mul64(extension)), // storage cost is calculated for just the extension
-			HostCost:   types.Siacoins(10).Add(prices.Collateral.Mul64(SectorSize).Mul64(renewalDuration)),                        // collateral is calculated for the full duration
+			RenterCost: types.Bigfiles(320).Add(prices.ContractPrice).Add(prices.StoragePrice.Mul64(SectorSize).Mul64(extension)), // storage cost is calculated for just the extension
+			HostCost:   types.Bigfiles(10).Add(prices.Collateral.Mul64(SectorSize).Mul64(renewalDuration)),                        // collateral is calculated for the full duration
 		},
 	}
 	for _, tc := range cases {
@@ -140,8 +140,8 @@ func TestRenewalCost(t *testing.T) {
 			contract, _ := NewContract(prices, RPCFormContractParams{
 				RenterPublicKey: renterKey,
 				RenterAddress:   types.StandardAddress(renterKey),
-				Allowance:       types.Siacoins(300),
-				Collateral:      types.Siacoins(400),
+				Allowance:       types.Bigfiles(300),
+				Collateral:      types.Bigfiles(400),
 				ProofHeight:     initialProofHeight,
 			}, hostKey, types.StandardAddress(hostKey))
 
@@ -236,7 +236,7 @@ func TestRefreshCost(t *testing.T) {
 
 	// the actual cost to the renter and host should always be the additional allowance and collateral
 	// on top of the existing contract costs
-	additionalAllowance, additionalCollateral := types.Siacoins(20), types.Siacoins(10)
+	additionalAllowance, additionalCollateral := types.Bigfiles(20), types.Bigfiles(10)
 	renterCost := additionalAllowance.Add(prices.ContractPrice)
 	hostCost := additionalCollateral
 
@@ -245,8 +245,8 @@ func TestRefreshCost(t *testing.T) {
 			contract, _ := NewContract(prices, RPCFormContractParams{
 				RenterPublicKey: renterKey,
 				RenterAddress:   types.StandardAddress(renterKey),
-				Allowance:       types.Siacoins(300),
-				Collateral:      types.Siacoins(400),
+				Allowance:       types.Bigfiles(300),
+				Collateral:      types.Bigfiles(400),
 				ProofHeight:     initialProofHeight,
 			}, hostKey, types.StandardAddress(hostKey))
 

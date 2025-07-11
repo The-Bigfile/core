@@ -68,11 +68,11 @@ func TestV2FileContractElementDiffJSON(t *testing.T) {
 			FileMerkleRoot:   frand.Entropy256(),
 			ProofHeight:      frand.Uint64n(math.MaxUint64),
 			ExpirationHeight: frand.Uint64n(math.MaxUint64),
-			RenterOutput: types.SiacoinOutput{
+			RenterOutput: types.BigfileOutput{
 				Value:   types.NewCurrency64(frand.Uint64n(math.MaxUint64)),
 				Address: frand.Entropy256(),
 			},
-			HostOutput: types.SiacoinOutput{
+			HostOutput: types.BigfileOutput{
 				Value:   types.NewCurrency64(frand.Uint64n(math.MaxUint64)),
 				Address: frand.Entropy256(),
 			},
@@ -125,11 +125,11 @@ func TestV2FileContractElementDiffJSON(t *testing.T) {
 			},
 		},
 		&types.V2FileContractRenewal{
-			FinalRenterOutput: types.SiacoinOutput{
+			FinalRenterOutput: types.BigfileOutput{
 				Value:   types.NewCurrency64(frand.Uint64n(math.MaxUint64)),
 				Address: frand.Entropy256(),
 			},
-			FinalHostOutput: types.SiacoinOutput{
+			FinalHostOutput: types.BigfileOutput{
 				Value:   types.NewCurrency64(frand.Uint64n(math.MaxUint64)),
 				Address: frand.Entropy256(),
 			},

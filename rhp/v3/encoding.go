@@ -372,16 +372,16 @@ func (r *RPCRenewContractRequest) DecodeFrom(d *types.Decoder) {
 // EncodeTo implements ProtocolObject
 func (r *RPCRenewContractHostAdditions) EncodeTo(e *types.Encoder) {
 	types.EncodeSlice(e, r.Parents)
-	types.EncodeSlice(e, r.SiacoinInputs)
-	types.EncodeSliceCast[types.V1SiacoinOutput](e, r.SiacoinOutputs)
+	types.EncodeSlice(e, r.BigfileInputs)
+	types.EncodeSliceCast[types.V1BigfileOutput](e, r.BigfileOutputs)
 	r.FinalRevisionSignature.EncodeTo(e)
 }
 
 // DecodeFrom implements ProtocolObject
 func (r *RPCRenewContractHostAdditions) DecodeFrom(d *types.Decoder) {
 	types.DecodeSlice(d, &r.Parents)
-	types.DecodeSlice(d, &r.SiacoinInputs)
-	types.DecodeSliceCast[types.V1SiacoinOutput](d, &r.SiacoinOutputs)
+	types.DecodeSlice(d, &r.BigfileInputs)
+	types.DecodeSliceCast[types.V1BigfileOutput](d, &r.BigfileOutputs)
 	r.FinalRevisionSignature.DecodeFrom(d)
 }
 

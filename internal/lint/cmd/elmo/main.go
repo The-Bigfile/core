@@ -20,7 +20,7 @@ func run(pass *analysis.Pass) (any, error) {
 		if named, ok := pass.TypesInfo.TypeOf(e).(*types.Named); ok {
 			if obj := named.Obj(); obj.Pkg() != nil && obj.Pkg().Path() == "go.thebigfile.com/core/types" {
 				switch name := obj.Name(); name {
-				case "StateElement", "ChainIndexElement", "SiacoinElement", "SiafundElement",
+				case "StateElement", "ChainIndexElement", "BigfileElement", "BigfundElement",
 					"FileContractElement", "V2FileContractElement", "AttestationElement":
 					pass.Reportf(e.Pos(), "shallow copy of %s; use Move, Share, or Copy", name)
 				}

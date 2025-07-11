@@ -1,4 +1,4 @@
-// Package rhp implements the Sia renter-host protocol, version 3.
+// Package rhp implements the Bigfile renter-host protocol, version 3.
 package rhp
 
 import (
@@ -528,8 +528,8 @@ type (
 	// additions for the renew contract RPC.
 	RPCRenewContractHostAdditions struct {
 		Parents                []types.Transaction
-		SiacoinInputs          []types.SiacoinInput
-		SiacoinOutputs         []types.SiacoinOutput
+		BigfileInputs          []types.BigfileInput
+		BigfileOutputs         []types.BigfileOutput
 		FinalRevisionSignature types.Signature
 	}
 

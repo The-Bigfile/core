@@ -74,7 +74,7 @@ func (bo *V2BlockOutline) Complete(cs consensus.State, txns []types.Transaction,
 		ParentID:     bo.ParentID,
 		Nonce:        bo.Nonce,
 		Timestamp:    bo.Timestamp,
-		MinerPayouts: []types.SiacoinOutput{{Address: bo.MinerAddress, Value: cs.BlockReward()}},
+		MinerPayouts: []types.BigfileOutput{{Address: bo.MinerAddress, Value: cs.BlockReward()}},
 		V2: &types.V2BlockData{
 			Height:     bo.Height,
 			Commitment: bo.commitment(cs),

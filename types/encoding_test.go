@@ -14,7 +14,7 @@ import (
 func TestEncodePtrCast(t *testing.T) {
 	var buf bytes.Buffer
 	e := types.NewEncoder(&buf)
-	c := types.Siacoins(1)
+	c := types.Bigfiles(1)
 	types.EncodePtrCast[types.V1Currency](e, &c)
 	types.EncodePtrCast[types.V2Currency](e, &c)
 	types.EncodePtrCast[types.V2Currency](e, nil)
@@ -48,7 +48,7 @@ func TestEncodeSlice(t *testing.T) {
 	}
 
 	buf.Reset()
-	cs := []types.Currency{types.Siacoins(1), types.Siacoins(2), types.MaxCurrency}
+	cs := []types.Currency{types.Bigfiles(1), types.Bigfiles(2), types.MaxCurrency}
 	types.EncodeSliceCast[types.V1Currency](e, cs)
 	types.EncodeSliceCast[types.V2Currency](e, cs)
 	e.Flush()
